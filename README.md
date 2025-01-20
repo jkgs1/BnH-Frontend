@@ -1,2 +1,3 @@
 # BnH-Frontend
-Frontend to Buzzers-n-hoopers repo
+Frontend to Buzzers-n-hoopers repo.
+Test.
