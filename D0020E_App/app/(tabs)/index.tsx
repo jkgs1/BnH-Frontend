@@ -3,35 +3,41 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } fro
 import { useNavigation } from 'expo-router';
 import * as yup from 'yup';
 import { Formik } from 'formik';
+import { navigate } from 'expo-router/build/global-state/routing';
 
 /* npm install yup, npm install formik 
    yup is used for schema validation, formik is used for 
 */
 
 
-export default function Tab() {
+/* export default function Tab() {
   return (
     <View style={styles.container}>
       <Text>Tab [Home|Settings]</Text>
     </View>
   );
 }
+*/
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#bcbcbc',
+    width: '100%',
+    
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: 'black',
+    marginBottom: 20,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    width: '50%',
     height: 50,
     backgroundColor: '#f1f1f1',
     borderRadius: 8,
@@ -44,7 +50,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
-    alignSelf: 'flex-start',
+    alignSelf: 'auto',
     marginBottom: 10,
   },
   buttonText: {
@@ -52,7 +58,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   button: {
-    width: '100%',
+    width: '50%',
     height: 50,
     backgroundColor: '#1E90FF',
     borderRadius: 8,
@@ -65,23 +71,24 @@ const styles = StyleSheet.create({
 const loginSchema = yup.object().shape({
   email: yup
     .string()
-    .email('Enter email')
-    .required('Email is required'),
+    .email('Vänligen ange en giltlig e-post')
+    .required('Ange E-post'),
   passwd: yup
     .string()
     .min(4, ({ min }) => 'Passwd must be at least ${min} chars')
-    .required('Passwd req'),
+    .required('Ange lösenord'),
 })
 
-export function loginpage(){
-  /* const { token, user, saveToken, saveUser } = useAuth();
-  const nav = useNav(); */
+export default function loginpage(){
+  // const { token, user, saveToken, saveUser } = useAuth();
+  const nav = useNavigation();
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Logga in</Text>
       <Formik
         validationSchema={loginSchema}
-        initialValues={{ email: 'Enter email here', passwd: 'Enter passwd here'}}
+        initialValues={{ email: '', passwd: ''}}
         onSubmit={async (values) => {
           await new Promise((resolve) => setTimeout(resolve, 500));
           alert(JSON.stringify(values, null, 2));
@@ -114,17 +121,25 @@ export function loginpage(){
                 placeholder="Lösenord"
                 keyboardType="default"
                 secureTextEntry
-                onChangeText={handleChange('lösen')}
-                onBlur={handleBlur('lösen')}
+                onChangeText={handleChange('passwd')}
+                onBlur={handleBlur('passwd')}
                 value={values.passwd}
                 ></TextInput>
               </View>
               {errors.passwd && touched.passwd && (
                 <Text style={styles.errorText}>{errors.passwd}</Text>
               )}
+
               <TouchableOpacity
               style={styles.button}
-              onPress={(handleSubmit)=>{''}}
+              // onPress={()=> nav.navigate()}
+              >
+              <Text style={styles.buttonText}>Sign Up</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+              style={styles.button}
+              onPress={(handleSubmit)=>{'asd'}}
               disabled={!isValid}
             >
               <Text style={styles.buttonText}>Login</Text>
