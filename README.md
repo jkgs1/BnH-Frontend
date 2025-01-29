@@ -8,4 +8,4 @@ See [main repo](https://github.com/jkgs1/Buzzers-n-hoopers)
 
 >npm install formik
 
- 
+>npm install @react-navigation/native @react-navigation/native-stack
