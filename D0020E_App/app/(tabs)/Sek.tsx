@@ -1,104 +1,93 @@
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import React from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 
-
-function TeamChBtn({ title, onPress, style }) {
-  return (
-    <TouchableOpacity style={[styles.teamChangeButton, style]} onPress={onPress}>
-      <Text style={styles.teamButtonTxt}>{title}</Text>
-    </TouchableOpacity>
-  );
-}
-function PlayerBtn({ title, onPress, style }) {
-  return (
-    <TouchableOpacity style={[styles.playerButton, style]} onPress={onPress}>
-      <Text style={styles.teamButtonTxt}>{title}</Text>
-    </TouchableOpacity>
-  );
+// Define TypeScript interfaces for props
+interface CustomButtonProps extends TouchableOpacityProps {
+  title: string;
+  style?: object;
 }
 
-export default function Tab() {
+const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
   return (
-    <View style={[styles.container, { flexDirection: 'column' }]}>
-      <View style={{ flex: 1, backgroundColor: 'lightgrey' }}>
-        <Text style={{ textAlign: "left", textAlignVertical: 'bottom'}}>
-          Hello world</Text>
-      </View>
-      
-      <View style={{ flex: 2, backgroundColor: 'grey', flexDirection: 'row' }}>
-       
-       
-       
-       
-        {/* Left Section for home players */}
-        <View style={[styles.teamPlayers, { backgroundColor: 'grey', alignItems: 'center' }]}>
-          {/*Button to change players */}
-          <TeamChBtn 
-            title="Byte" 
-            onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')} 
-            style={{ backgroundColor: 'purple', paddingVertical: 5 }}
-          />
+    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+      <Text style={styles.buttonText}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
-          {/* First Four Buttons for players on the court*/}
-          {Array.from({ length: 2 }).map((_, rowIndex) => (
+const PlayerButtons: React.FC<{ start: number; end: number }> = ({ start, end }) => {
+  const players = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+
+  return (
+    <>
+      {players.map((player, index) => {
+        // Render two buttons per row
+        if (index % 2 === 0) {
+          return (
             <View
-              key={rowIndex}
+              key={player}
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                width: '80%',
+                width: '70%',
                 marginVertical: '2%',
               }}
             >
-              <PlayerBtn
-                title={`P${rowIndex * 2 + 1}`}
-                onPress={() => Alert.alert('Button Pressed', `You clicked Player ${rowIndex * 2 + 1}!`)}
+              <CustomButton
+                title={`P${player}`}
+                onPress={() => Alert.alert('Button Pressed', `You clicked Player ${player}!`)}
                 style={styles.playerButton}
               />
-              <PlayerBtn
-                title={`P${rowIndex * 2 + 2}`}
-                onPress={() => Alert.alert('Button Pressed', `You clicked Player ${rowIndex * 2 + 2}!`)}
-                style={styles.playerButton}
-              />
+              {players[index + 1] && (
+                <CustomButton
+                  title={`P${players[index + 1]}`}
+                  onPress={() => Alert.alert('Button Pressed', `You clicked Player ${players[index + 1]}!`)}
+                  style={styles.playerButton}
+                />
+              )}
             </View>
-          ))}
+          );
+        }
+        return null; // Skip rendering for the second button in the pair
+      })}
+    </>
+  );
+};
 
-          {/* Middle Single Button, player on court*/}
-          <View style={{ width: '80%', marginVertical: '2%', alignItems: 'center' }}>
-            <PlayerBtn
+const Tab: React.FC = () => {
+  return (
+    <View style={[styles.container, { flexDirection: 'column' }]}>
+      <View style={{ flex: 1, backgroundColor: 'lightgrey' }}>
+        <Text style={{ textAlign: "left", textAlignVertical: 'bottom' }}>Hello world</Text>
+      </View>
+
+      <View style={{ flex: 2, backgroundColor: 'grey', flexDirection: 'row' }}>
+        {/* Left Section for home players */}
+        <View style={[styles.teamPlayers, { backgroundColor: 'grey', alignItems: 'center' }]}>
+          <CustomButton
+            title="Byte"
+            onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
+            style={{ backgroundColor: 'purple', paddingVertical: 5, top: 0 ,position: 'absolute',}}
+          />
+
+          {/* First Four Buttons for players on the court */}
+          <PlayerButtons start={1} end={4} />
+
+          {/* Middle Single Button, player on court */}
+          <View style={{ width: '70%', marginVertical: '2%', alignItems: 'center' }}>
+            <CustomButton
               title="P5"
               onPress={() => Alert.alert('Button Pressed', 'You clicked Player 5!')}
               style={styles.playerButton}
             />
           </View>
 
-          {/* Next Six Buttons players on the bench */}
-          {Array.from({ length: 3 }).map((_, rowIndex) => (
-            <View
-              key={rowIndex}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                width: '80%',
-                marginVertical: '2%',
-              }}
-            >
-              <PlayerBtn
-                title={`P${rowIndex * 2 + 6}`}
-                onPress={() => Alert.alert('Button Pressed', `You clicked Player ${rowIndex * 2 + 6}!`)}
-                style={styles.playerButton}
-              />
-              <PlayerBtn
-                title={`P${rowIndex * 2 + 7}`}
-                onPress={() => Alert.alert('Button Pressed', `You clicked Player ${rowIndex * 2 + 7}!`)}
-                style={styles.playerButton}
-              />
-            </View>
-          ))}
+          {/* Next Six Buttons for players on the bench */}
+          <PlayerButtons start={6} end={11} />
 
-          {/* Bottom Button , last player on bench*/}
-          <View style={{ width: '80%', marginVertical: '2%', alignItems: 'center' }}>
-            <PlayerBtn
+          {/* Bottom Button, last player on bench */}
+          <View style={{ width: '70%', marginVertical: '2%', alignItems: 'center' }}>
+            <CustomButton
               title="P12"
               onPress={() => Alert.alert('Button Pressed', 'You clicked Player 12!')}
               style={styles.playerButton}
@@ -106,54 +95,49 @@ export default function Tab() {
           </View>
         </View>
 
-
-
-        
-        {/* middle Section still in progress */}
+        {/* Middle Section still in progress */}
         <View style={[styles.teamPlayers, { backgroundColor: 'black' }]}></View>
-        
+
         {/* Right Section is for the away team */}
         <View style={[styles.teamPlayers, { backgroundColor: 'grey' }]}>
-          <TeamChBtn 
-            title="Byte" 
-            onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')} 
+          <CustomButton
+            title="Byte"
+            onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
             style={{ backgroundColor: 'purple', paddingVertical: 5 }}
           />
         </View>
       </View>
     </View>
   );
-}
-
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   teamPlayers: {
     paddingVertical: '5%',
     paddingHorizontal: '5%',
     flex: 1,
   },
-  teamChangeButton: {
-    top:0,
-    position: 'absolute',
+  button: {
     borderRadius: 3,
     backgroundColor: 'blue',
     alignSelf: 'center',
-    paddingHorizontal: "20%", 
-    paddingVertical: "10%", 
+    paddingHorizontal: "20%",
+    paddingVertical: "10%",
   },
-  teamButtonTxt: {
+  buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
   },
-  playerButton:{
+  playerButton: {
     backgroundColor: 'blue',
     width: '15%', // Square button
     aspectRatio: 1, // Ensures square shape
     marginVertical: '1%',
-  }
+  },
 });
+
+export default Tab;
