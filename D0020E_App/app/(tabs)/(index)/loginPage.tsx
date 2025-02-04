@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
-import { useNavigation } from 'expo-router';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Pressable } from 'react-native';
+import { router, useNavigation } from 'expo-router';
 import * as yup from 'yup';
 import { Formik } from 'formik';
 import { navigate } from 'expo-router/build/global-state/routing';
@@ -66,6 +66,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  logo: {
+    height: 300,
+    width: 400,
+    resizeMode: "contain",
+    marginBottom: 0,
+  }
 });
 
 const loginSchema = yup.object().shape({
@@ -78,21 +84,30 @@ const loginSchema = yup.object().shape({
     .min(4, ({ min }) => 'Passwd must be at least ${min} chars')
     .required('Ange lösenord'),
 })
-
+function LogoPic(){
+    let fileuri=require("../../../assets/images/BuzzLogo.png");
+    return(
+        <Image style ={styles.logo} source ={fileuri}/>
+    );
+}
 export default function loginpage(){
   // const { token, user, saveToken, saveUser } = useAuth();
   const nav = useNavigation();
   
   return (
     <View style={styles.container}>
+      <LogoPic></LogoPic>
       <Text style={styles.title}>Logga in</Text>
       <Formik
         validationSchema={loginSchema}
         initialValues={{ email: '', passwd: ''}}
-        onSubmit={async (values) => {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          alert(JSON.stringify(values, null, 2));
-        }}
+        // onSubmit={async (values) => {
+        //  await new Promise((resolve) => setTimeout(resolve, 500));
+        //  alert(JSON.stringify(values, null, 2)); 
+        //}}
+        onSubmit={() => 
+          useNavigation("/(tabs)/(index)/home")
+        }
         >
           {({
             handleChange,
@@ -130,20 +145,21 @@ export default function loginpage(){
                 <Text style={styles.errorText}>{errors.passwd}</Text>
               )}
 
-              <TouchableOpacity
+            <TouchableOpacity
               style={styles.button}
               // onPress={()=> nav.navigate()}
+              disabled={!isValid}
               >
               <Text style={styles.buttonText}>Sign Up</Text>
-              </TouchableOpacity>
+            </TouchableOpacity>
 
-              <TouchableOpacity
+            <Pressable
               style={styles.button}
-              onPress={(handleSubmit)=>{'asd'}}
-              disabled={!isValid}
+              onPress={() => router.push("/(tabs)/(index)/home")}
+              disabled={isValid}
             >
               <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
+            </Pressable>
             </>
 
           ) 
