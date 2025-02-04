@@ -4,4 +4,4 @@ See [main repo](https://github.com/jkgs1/Buzzers-n-hoopers)
 ## Requirements
 >npm, npx, yup, formik, @react-navigation/native @react-navigation/native-stack
 
->run `npm install` in package.json folder for full package download
+>run `npm install` in same folder as package.json for full download
