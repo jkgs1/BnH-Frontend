@@ -155,7 +155,7 @@ export default function loginpage(){
 
             <Pressable
               style={styles.button}
-              onPress={() => router.push("/(tabs)/(index)/home")}
+              onPress={() => router.push("/(tabs)/(home)")}
               disabled={isValid}
             >
               <Text style={styles.buttonText}>Login</Text>

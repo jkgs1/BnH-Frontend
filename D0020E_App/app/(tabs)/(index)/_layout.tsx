@@ -13,8 +13,7 @@ export default function HomeLayout() {
           fontWeight: 'bold',
         },  
       }}>
-      <Stack.Screen name="loginPage"/>
-      <Stack.Screen name="homeScreen"/>
+      <Stack.Screen name="teamView" options={{headerShown: false}}/>
     </Stack>
   );
 }
