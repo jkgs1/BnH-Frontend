@@ -13,7 +13,7 @@ export default function HomeLayout() {
           fontWeight: 'bold',
         },  
       }}>
-      <Stack.Screen name="teamView" options={{headerShown: false}}/>
+      <Stack.Screen name="clubbView" options={{headerShown: false}}/>
     </Stack>
   );
 }

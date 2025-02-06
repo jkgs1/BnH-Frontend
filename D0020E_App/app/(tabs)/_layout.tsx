@@ -19,7 +19,7 @@ export default function TabLayout() {
         }}
       />}
       <Tabs.Screen
-        name="sek"
+        name="Sek"
         options={{
           title: 'Sek',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="futbol-o" color={color} />,

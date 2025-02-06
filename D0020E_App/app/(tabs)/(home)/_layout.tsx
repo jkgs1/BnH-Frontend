@@ -13,9 +13,8 @@ export default function HomeLayout() {
           fontWeight: 'bold',
         },
       }}>
-      <Stack.Screen name="loginPage" options={{ headerShown: false}}/>
       <Stack.Screen name="index" options={{ headerShown: false}}/>
-      <Stack.Screen name="details" options={{ headerShown: false}}/>
+      <Stack.Screen name="loginPage" options={{ headerShown: false}}/>
     </Stack>
   );
 }
