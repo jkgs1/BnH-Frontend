@@ -111,6 +111,11 @@ const Tab: React.FC = () => {
   );
 };
 
+
+//https://stackoverflow.com/questions/68494075/how-can-i-make-a-button-change-what-components-are-showing-in-react-native
+//Link for action buttens. open up a new view
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
