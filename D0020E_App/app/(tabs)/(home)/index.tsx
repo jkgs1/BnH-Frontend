@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { router } from 'expo-router';
 
 export function Tab() {
   return (
@@ -53,9 +54,12 @@ export default function welcomeScreen() {
     <View style={styles.box1}>
       <Text style={styles.titleText}>Välkommen, {klubbNamn}</Text>
     </View>
-    <View style={styles.box}>
+    <Pressable
+        style={styles.box}
+        onPress={() => router.push("/(tabs)/(index)/clubbView")}
+    >
       <Text style={styles.titleText}>Se dina lag</Text>
-    </View>
+    </Pressable>
     <View style={styles.box}>
       <Text style={styles.titleText}>Se matchstatestik</Text>
     </View>
