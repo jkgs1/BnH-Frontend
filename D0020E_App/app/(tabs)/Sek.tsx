@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, TouchableOpacityProps, ScrollView } from 'react-native';
 
 // Define TypeScript interfaces for props
@@ -17,14 +17,16 @@ const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) =>
 
 const PlayerButtons: React.FC<{ start: number; end: number }> = ({ start, end }) => {
   const players = Array.from({ length: end - start + 1 }, (_, index) => start + index);
-
+  const[show, setShow]=useState(true)
   return (
     <>
       {players.map((player, index) => {
         // Render two buttons per row
         if (index % 2 === 0) {
           return (
+            
             <View
+            
               key={player}
               style={{
                 flexDirection: 'row',
@@ -33,19 +35,23 @@ const PlayerButtons: React.FC<{ start: number; end: number }> = ({ start, end })
                 marginVertical: '2%',
               }}
             >
+              
               <CustomButton
                 title={`P${player}`}
-                onPress={() => Alert.alert('Button Pressed', `You clicked Player ${player}!`)}
+                onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
                 style={styles.playerButton}
               />
+              
               {players[index + 1] && (
                 <CustomButton
                   title={`P${players[index + 1]}`}
-                  onPress={() => Alert.alert('Button Pressed', `You clicked Player ${players[index + 1]}!`)}
+                  onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
                   style={styles.playerButton}
                 />
+                
+                
               )}
-            </View>
+            </View> 
           );
         }
         return null; // Skip rendering for the second button in the pair
@@ -55,22 +61,26 @@ const PlayerButtons: React.FC<{ start: number; end: number }> = ({ start, end })
 };
 
 const Tab: React.FC = () => {
+  const[show, setShow]=useState(false)
   return (
     <ScrollView>
       <View style={[styles.container, { flexDirection: 'column' }]}>
         <View style={{ flex: 1, backgroundColor: 'lightgrey' }}>
           <Text style={{ textAlign: "left", textAlignVertical: 'bottom' }}>Hello world</Text>
         </View>
-
         <View style={styles.buttonBox}>
+
           {/* Left Section for home players */}
           <View style={[styles.teamPlayers, { backgroundColor: 'grey', alignItems: 'center' }]}>
+            
+            {/*Button the change players */}
             <CustomButton
               title="Byte"
-              onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
+              onPress={() => Alert.alert('Button Pressed', 'You clicked Player 12!')}
               style={{ backgroundColor: 'purple', paddingVertical: 5, top: 0, position: 'absolute', }}
             />
 
+            
             {/* First Four Buttons for players on the court */}
             <PlayerButtons start={1} end={4} />
 
@@ -78,11 +88,12 @@ const Tab: React.FC = () => {
             <View style={{ width: '70%', marginVertical: '2%', alignItems: 'center' }}>
               <CustomButton
                 title="P5"
-                onPress={() => Alert.alert('Button Pressed', 'You clicked Player 5!')}
+                onPress={() => setShow(!show)}
                 style={styles.playerButton}
               />
+              
             </View>
-
+            
             {/* Next Six Buttons for players on the bench */}
             <PlayerButtons start={6} end={11} />
 
@@ -97,7 +108,9 @@ const Tab: React.FC = () => {
           </View>
 
           {/* Middle Section still in progress */}
-          <View style={[styles.teamPlayers, { backgroundColor: 'black' }]}></View>
+          <View style={[styles.teamPlayers, { backgroundColor: 'black' }]}>
+            {show && <ActionView />}
+          </View>
 
           {/* Right Section is for the away team */}
           <View style={[styles.teamPlayers, { backgroundColor: 'grey' }]}>
@@ -108,10 +121,22 @@ const Tab: React.FC = () => {
             />
           </View>
         </View>
+        
       </View>
     </ScrollView>
   );
 };
+
+//{show ? <ActionView /> : null}
+const ActionView: React.FC  =()=>{
+  return(
+    <View style={styles.actionWindowView}>
+       {/*Knapp för poäng 1-3 */}
+       {/*Knapp för fouls */}
+      
+    </View>
+  )
+}
 
 
 //https://stackoverflow.com/questions/68494075/how-can-i-make-a-button-change-what-components-are-showing-in-react-native
@@ -157,6 +182,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderWidth: 2,
     borderColor: "red",
+  },
+  actionWindowView:{
+    width: 200,
+    height: 200,
+    backgroundColor: 'orange',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    elevation: 5, // Shadow effect
+    position: 'absolute',
+    top: 0, // Centers vertically
+    alignSelf: 'center', // Centers horizontally
+    transform: [{ translateY: -100 }], // Adjusts for exact centering
   }
 });
 
