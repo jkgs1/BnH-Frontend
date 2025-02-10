@@ -16,6 +16,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) =>
     </TouchableOpacity>
   );
 };
+
 // pointcounter, unused
 const incrementCountRef = useRef<(number: number) => number>();
 const pointCounter = () => {
@@ -42,14 +43,7 @@ const PlayerButtons: React.FC<{ start: number; end: number; toggleShow: () => vo
           return (
             <View
               key={player}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                //width: '70%',
-                flex: 1,
-                marginVertical: '2%',
-                marginHorizontal: '2%',
-              }}
+              style={styles.playerBoxButton}
             >
               <CustomButton
                 title={`P${player}`}
@@ -173,13 +167,13 @@ const Tab: React.FC = () => {
         <View style={styles.buttonBox}>
 
           {/* Left Section for home players */}
-          <View style={[styles.teamPlayers, { backgroundColor: 'grey', alignItems: 'center' }]}>
+          <View style={[styles.teamPlayers, { alignItems: 'center' }]}>
 
             {/*Button the change players */}
             <CustomButton
               title="Byte"
               onPress={() => Alert.alert('Button Pressed', 'You clicked byte')}
-              style={{ backgroundColor: 'purple', paddingVertical: 5, top: 0, position: 'absolute', }}
+              style={styles.byteButton}
             />
 
 
@@ -187,20 +181,20 @@ const Tab: React.FC = () => {
             <PlayerButtons start={1} end={4} toggleShow={toggleShow} />
 
             {/* Middle Single Button, player on court */}
-            <View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>
+            {/*</View><View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>*/}
+            <View style={styles.playerBoxButton}>
               <CustomButton
                 title="P5"
                 onPress={toggleShow}
                 style={styles.playerButton}
               />
-
             </View>
 
             {/* Next Six Buttons for players on the bench */}
             <PlayerButtons start={6} end={11} toggleShow={() => { }} />
 
             {/* Bottom Button, last player on bench */}
-            <View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>
+            <View style={styles.playerBoxButton}>
               <CustomButton
                 title="P12"
                 onPress={() => Alert.alert('Button Pressed', 'You clicked Player 12!')}
@@ -210,16 +204,16 @@ const Tab: React.FC = () => {
           </View>
 
           {/* Middle Section still in progress */}
-          <View style={[styles.teamPlayers, { backgroundColor: 'black' }]}>
+          <View style={[styles.teamPlayers, { backgroundColor: "white" }]}>
             {show && <ActionView />}
           </View>
 
           {/* Right Section is for the away team */}
-          <View style={[styles.teamPlayers, { backgroundColor: 'grey' }]}>
+          <View style={[styles.teamPlayers]}>
             <CustomButton
               title="Byte"
               onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
-              style={{ backgroundColor: 'purple', paddingVertical: 5 }}
+              style={styles.byteButton}
             />
           </View>
         </View>
@@ -265,6 +259,15 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "auto",
   },
+  byteButton:{
+    backgroundColor: 'purple',
+    width:"90%", 
+    height:"5%",
+    paddingVertical: 0, 
+    top: 10, 
+    position: 'absolute',
+    
+  },
   pointBox: {
     borderColor: "black",
     borderWidth: 2,
@@ -276,7 +279,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   matchStatsBox: {
-    backgroundColor: 'white',
+    backgroundColor: 'lightgray',
     alignItems: "center",
     justifyContent: "center",
     height: "auto",
@@ -306,7 +309,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: 'lightgray',
+    paddingBottom: 12,
   },
   button: {
     borderRadius: 3,
@@ -317,24 +321,31 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 32,
     fontWeight: 'bold',
+    textAlign:"center",
+  },
+  playerBoxButton:{
+    flexDirection: 'row',
+    justifyContent: "center",
+    alignContent: "center",
+    width: '100%',
+    flex:1,
+    marginHorizontal: '1%',
+    gap: 10,
   },
   playerButton: {
     backgroundColor: 'blue',
-    width: '15%', // Square button
-    aspectRatio: 1, // Ensures square shape
-    marginVertical: '1%',
+    width: '61%', // Square button
+    //aspectRatio: 1, // Ensures square shape
+    //marginVertical: '0%',
     flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent:"space-between"
   },
   buttonBox: {
     flex: 2,
     backgroundColor: "gray",
     flexDirection: "row",
-    borderWidth: 2,
-    borderColor: "red",
   },
   actionWindowView: {
     flexDirection: 'column',
