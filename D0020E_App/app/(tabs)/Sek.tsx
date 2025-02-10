@@ -332,6 +332,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flex:1,
     marginHorizontal: '1%',
+    marginVertical: "1%",
     gap: 10,
   },
   playerButton: {
@@ -340,7 +341,7 @@ const styles = StyleSheet.create({
     //aspectRatio: 1, // Ensures square shape
     //marginVertical: '0%',
     flexDirection: "row",
-    justifyContent:"space-between"
+    justifyContent:"center"
   },
   buttonBox: {
     flex: 2,
