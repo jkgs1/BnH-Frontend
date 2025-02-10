@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, TouchableOpacityProps, ScrollView } from 'react-native';
 
 // Define TypeScript interfaces for props
@@ -12,6 +12,21 @@ const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) =>
     <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
+  );
+};
+// pointcounter, unused
+const incrementCountRef = useRef<(number: number) => number>();
+const pointCounter = () => {
+  const [pointCount, setCount] = useState<number>(0);
+  incrementCountRef.current = (number: number) => {
+    setCount((prevCount) => prevCount + number);
+    return pointCount + number; 
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text>{pointCount}</Text>
+    </View>
   );
 };
 
@@ -60,14 +75,65 @@ const PlayerButtons: React.FC<{ start: number; end: number }> = ({ start, end })
   );
 };
 
+const CircleHeader=()=> {
+  const [timeoutsLeft, setTimeoutsLeft] = useState<number>(3);
+  const [foulsLeft, setFoulsLeft] = useState<number>(1);
+  const [timeoutsRight, setTimeoutsRight] = useState<number>(3);
+  const [foulsRight, setFoulsRight] = useState<number>(1);
+
+  const renderInfoCircles = (count: number, total: number) => {
+    return Array.from({ length: total }).map((_, index) => (
+      <View
+        key={index}
+        style={[
+          styles.infoCircle,
+          index < count ? styles.filledInfoCircle : styles.emptyInfoCircle,
+        ]}
+      />
+    ));
+  };
+  return (
+    <View style={styles.headerInfoCirclesContainer}>
+      <View style={{alignItems:"center"}}>
+        <Text style={{fontSize:14,fontWeight:"bold"}}>Timeout:</Text>
+        <View style={{flexDirection:"row",marginBottom:8,}}>
+          {renderInfoCircles(timeoutsLeft, 3)}
+        </View>
+        <Text style={{fontSize:14,fontWeight:"bold"}}>Foul</Text>
+        <View style={{flexDirection:"row",marginBottom:8,}}>
+          {renderInfoCircles(foulsLeft, 5)}
+        </View>
+      </View>
+
+      <View style={{alignItems:"center",}}>
+        <Text style={{fontSize:14,fontWeight:"bold"}}>Timeout</Text>
+        <View style={{flexDirection:"row"}}>
+          {renderInfoCircles(timeoutsRight, 3)}
+        </View>
+        <Text style={{fontSize:14,fontWeight:"bold"}}>Foul</Text>
+        <View style={{flexDirection:"row"}}>
+          {renderInfoCircles(foulsRight, 5)}
+        </View>
+      </View>
+
+    </View>
+  )
+}
+
 const Tab: React.FC = () => {
   const[show, setShow]=useState(false)
   return (
     <ScrollView>
       <View style={[styles.container, { flexDirection: 'column' }]}>
-        <View style={{ flex: 1, backgroundColor: 'lightgrey' }}>
-          <Text style={{ textAlign: "left", textAlignVertical: 'bottom' }}>Hello world</Text>
+
+        {/* Header/ Match status box */}
+        <View style={styles.matchStatsBox}>
+          <View style={styles.pointBox}>
+            <Text style={{color:"white", fontSize:64,}}>12-12</Text>
+          </View>
         </View>
+        <CircleHeader />
+
         <View style={styles.buttonBox}>
 
           {/* Left Section for home players */}
@@ -147,13 +213,48 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: "auto",
+  },
+  pointBox:{
+    borderColor: "black",
     borderWidth: 2,
-    borderColor: "yellow"
+    backgroundColor: "green",
+    width: "auto",
+    height: "auto",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  matchStatsBox:{ 
+    backgroundColor: 'pink',
+    alignItems: "center",
+    justifyContent: "center",
+    height: 300,
   },
   teamPlayers: {
     paddingVertical: '5%',
     paddingHorizontal: '5%',
     flex: 1,
+  },
+  infoCircle: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  filledInfoCircle: {
+    backgroundColor: "red",
+  },
+  emptyInfoCircle: {
+    backgroundColor: "lightgrey",
+    borderWidth: 1,
+    borderColor: "gray",
+  },
+  headerInfoCirclesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: 'pink',
   },
   button: {
     borderRadius: 3,
