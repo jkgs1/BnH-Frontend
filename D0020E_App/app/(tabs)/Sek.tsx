@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0, 
     top: 10, 
     position: 'absolute',
-    
+    borderRadius:8,    
   },
   pointBox: {
     borderColor: "black",
@@ -341,7 +341,8 @@ const styles = StyleSheet.create({
     //aspectRatio: 1, // Ensures square shape
     //marginVertical: '0%',
     flexDirection: "row",
-    justifyContent:"center"
+    justifyContent:"center",
+    borderRadius:8,
   },
   buttonBox: {
     flex: 2,
