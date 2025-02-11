@@ -86,7 +86,8 @@ const Tab: React.FC = () => {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={[styles.container, { flexDirection: 'column' }]}>
-        <View style={{ flex: 3, backgroundColor: 'lightgrey' }}>
+        
+        <View style={{ flex: 1, backgroundColor: 'lightgrey' }}>
           <Text style={{ textAlign: "left", textAlignVertical: 'bottom' }}>Hello world</Text>
         </View>
         <View style={styles.buttonBox}>
