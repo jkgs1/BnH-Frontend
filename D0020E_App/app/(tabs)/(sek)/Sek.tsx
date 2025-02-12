@@ -33,7 +33,7 @@ const pointCounter = () => {
   );
 };
 
-const PlayerButtons: React.FC<{ start: number; end: number; toggleShow: () => void }> = ({ start, end, toggleShow }) => {
+const PlayerButtons: React.FC<{ start: number; end: number; openActionView: () => void }> = ({ start, end, openActionView }) => {
   const players = Array.from({ length: end - start + 1 }, (_, index) => start + index);
 
   return (
@@ -48,7 +48,7 @@ const PlayerButtons: React.FC<{ start: number; end: number; toggleShow: () => vo
               <CustomButton
                 title={`P${player}`}
                 onPress={() => {
-                  if (player >= 1 && player <= 4) toggleShow();
+                  if (player >= 1 && player <= 4) openActionView();
                 }}
                 style={styles.playerButton}
               />
@@ -56,7 +56,7 @@ const PlayerButtons: React.FC<{ start: number; end: number; toggleShow: () => vo
                 <CustomButton
                   title={`P${players[index + 1]}`}
                   onPress={() => {
-                    if (players[index + 1] >= 1 && players[index + 1] <= 4) toggleShow();
+                    if (players[index + 1] >= 1 && players[index + 1] <= 4) openActionView();
                   }}
                   style={styles.playerButton}
                 />
@@ -71,17 +71,17 @@ const PlayerButtons: React.FC<{ start: number; end: number; toggleShow: () => vo
 };
 
 
-const PointButtons: React.FC<{ start: number; end: number; toggleShow: () => void }> = ({ start, end, toggleShow }) => {
+const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void }> = ({ start, end, closeActionView }) => {
   const points = Array.from({ length: end - start + 1 }, (_, index) => start + index);
 
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '70%', marginHorizontal: '8%', }}>
+    <View >
       {points.map((point) => (
         <CustomButton
           key={point}
-          title={`${point} Point`}
-          onPress={() => toggleShow()}
-          style={styles.playerButton}
+          title={`${point} Poäng`}
+          onPress={closeActionView}
+          style={styles.pointButton}
         />
       ))}
     </View>
@@ -150,9 +150,11 @@ const CircleHeader = () => {
     </View>
   )
 }
+
 const Tab: React.FC = () => {
-  const [show, setShow] = useState(false);
-  const toggleShow = () => setShow(!show);
+  const [showActionView, setShowActionView] = useState(false);
+  const openActionView = () => setShowActionView(true);
+  const closeActionView = () => setShowActionView(false);
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={[styles.container, { flexDirection: 'column' }]}>
@@ -163,7 +165,7 @@ const Tab: React.FC = () => {
           </View>
         </View>
         <CircleHeader />
-
+        
         <View style={styles.buttonBox}>
 
           {/* Left Section for home players */}
@@ -178,20 +180,20 @@ const Tab: React.FC = () => {
 
 
             {/* First Four Buttons for players on the court */}
-            <PlayerButtons start={1} end={4} toggleShow={toggleShow} />
+            <PlayerButtons start={1} end={4} openActionView={openActionView} />
 
             {/* Middle Single Button, player on court */}
             {/*</View><View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>*/}
             <View style={styles.playerBoxButton}>
               <CustomButton
                 title="P5"
-                onPress={toggleShow}
+                onPress={openActionView}
                 style={styles.playerButton}
               />
             </View>
 
             {/* Next Six Buttons for players on the bench */}
-            <PlayerButtons start={6} end={11} toggleShow={() => { }} />
+            <PlayerButtons start={6} end={11} openActionView={openActionView}/>
 
             {/* Bottom Button, last player on bench */}
             <View style={styles.playerBoxButton}>
@@ -205,11 +207,12 @@ const Tab: React.FC = () => {
 
           {/* Middle Section still in progress */}
           <View style={[styles.teamPlayers, { backgroundColor: "white" }]}>
-            {show && <ActionView />}
+           
           </View>
-
+          
           {/* Right Section is for the away team */}
           <View style={[styles.teamPlayers]}>
+          
             <CustomButton
               title="Byte"
               onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
@@ -217,6 +220,7 @@ const Tab: React.FC = () => {
             />
           </View>
         </View>
+        {showActionView && <ActionView closeActionView={closeActionView}/>}
 
       </View>
     </ScrollView>
@@ -224,25 +228,27 @@ const Tab: React.FC = () => {
 };
 
 
-const ActionView: React.FC = () => {
+const ActionView: React.FC<{ closeActionView: () => void }> = ({ closeActionView }) => {
   const [show, setShow] = useState(false);
   const toggleShow = () => setShow(!show);
 
   return (
     <View style={styles.actionWindowView}>
+      <TouchableOpacity onPress={closeActionView} style={styles.closeButton}>
+        <Text style={styles.closeButtonText}>X</Text>
+      </TouchableOpacity>
 
       {/*Knapp för poäng 1-3 */}
       <View >
-        <PointButtons start={1} end={3} toggleShow={toggleShow} />
+      <PointButtons start={1} end={3} closeActionView={closeActionView} />
       </View>
 
       {/*Knapp för fouls */}
-      <View style={{ justifyContent: 'space-between', width: '70%', alignSelf: 'center', }}>
-        <CustomButton
-          title={'FOUL'}
-          onPress={() => setShow(false)}
-          style={styles.playerButton}
-        />
+      <View style={styles.foulButton}>
+      <CustomButton 
+        title={'FOUL'} 
+        onPress={closeActionView} 
+        style={styles.pointButton} />
       </View>
 
     </View>
@@ -289,6 +295,8 @@ const styles = StyleSheet.create({
     paddingVertical: '5%',
     paddingHorizontal: '5%',
     flex: 1,
+    borderBlockColor:'black',
+    borderWidth: 1
   },
   infoCircle: {
     width: 16,
@@ -325,6 +333,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign:"center",
   },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'red',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   playerBoxButton:{
     flexDirection: 'row',
     justifyContent: "center",
@@ -344,14 +368,28 @@ const styles = StyleSheet.create({
     justifyContent:"center",
     borderRadius:8,
   },
+  pointButton:{
+    backgroundColor: 'blue',
+    width: '80%', // Square button
+    aspectRatio: 1, // Ensures square shape
+    marginVertical: '27%',
+    //marginHorizontal:'-5%',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  foulButton:{
+    alignSelf:'center',
+    width:'33%',
+  },
   buttonBox: {
     flex: 2,
-    backgroundColor: "gray",
+    backgroundColor: "white",
     flexDirection: "row",
   },
   actionWindowView: {
-    flexDirection: 'column',
-    width: '120%',
+    flexDirection: 'row',
+    width: '40%',
     height: '45%',
     backgroundColor: 'white',
     justifyContent: 'center',
@@ -359,7 +397,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, // Centers vertically
     alignSelf: 'center', // Centers horizontally
-    transform: [{ translateY: -80 }], // Adjusts for exact centering
+    transform: [{ translateY:'40%'}], // Adjusts for exact centering
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
   }
 });
 
