@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
+import {router} from 'expo-router';
 
 const matchID = "123456"
 
@@ -59,6 +60,15 @@ const MatchOptionButton: React.FC<CustomButtonProps> = ({ title, onPress, style 
         </TouchableOpacity>
     );
 };
+const MatchStartButton: React.FC<CustomButtonProps> = ({title, onPress, style}) => {
+    return(
+        <TouchableOpacity style={styles.greenButton}onPress={()=> 
+         router.push("/Sek")   
+        }>
+            <Text style={styles.buttonText}>{title}</Text>
+        </TouchableOpacity>
+    );
+};
 
 export default function Tab() {
     return (
@@ -97,6 +107,10 @@ export default function Tab() {
                     
                 </View>
             </View>
+
+            <View style={styles.bottomContainer}>
+                <MatchStartButton title="Starta match"/>
+            </View>
         </View>
     );
 }
@@ -106,6 +120,15 @@ const styles = StyleSheet.create({
         flex: 1,
         // justifyContent: 'center',
         // alignItems: 'center',
+    },
+    bottomContainer:{
+        backgroundColor:"",
+        height:"30%",
+        width:"100%",
+        justifyContent:"center",
+        alignItems:"center",
+        bottom:0,
+        position:"absolute"
     },
     // Header
     topheader: {
@@ -152,7 +175,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "flex-start",
         flexDirection: "row",
-        
     },
     teamOptionsHome: {
         width: "50%",
@@ -188,10 +210,9 @@ const styles = StyleSheet.create({
         height: "auto",
         alignItems: "center",
         flexDirection: "column",
-        backgroundColor:"green",
+        backgroundColor:"",
         top:50,
         gap:10,
-        
     },
     // Buttons
     matchButtons:{
@@ -201,6 +222,7 @@ const styles = StyleSheet.create({
         padding: 10,
         alignItems: "center",
         justifyContent: "center",
+        borderRadius:8,
     },
     button: {
         height: 60,
@@ -209,10 +231,21 @@ const styles = StyleSheet.create({
         padding: 10,
         alignItems: "center",
         justifyContent: "center",
+        borderRadius:8,
     },
     buttonText: {
         fontSize: 16,
         fontWeight: "normal",
         color: "black",
-    }
+    },
+    greenButton: {
+        borderColor: "black",
+        borderWidth: 2,
+        backgroundColor: "green",
+        width: "50%",
+        height: "50%",
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 8,
+      },
 });

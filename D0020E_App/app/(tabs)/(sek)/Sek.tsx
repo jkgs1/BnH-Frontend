@@ -94,7 +94,7 @@ const CircleHeader = () => {
   const [timeoutsRight, setTimeoutsRight] = useState<number>(3);
   const [foulsRight, setFoulsRight] = useState<number>(1);
 
-  const currentPeriod= 2;
+  const currentPeriod = 2;
 
   const renderInfoCircles = (count: number, total: number) => {
     return Array.from({ length: total }).map((_, index) => (
@@ -125,10 +125,10 @@ const CircleHeader = () => {
           </View>
         </View>
       </View>
-      
+
       {/* Middle */}
-      <View style={{alignItems:"center",}}>
-      <Text style={{ fontSize: 28, fontWeight: "bold"}}>Period: {currentPeriod}</Text>
+      <View style={{ alignItems: "center", }}>
+        <Text style={{ fontSize: 28, fontWeight: "bold" }}>Period: {currentPeriod}</Text>
       </View>
 
       {/* Right */}
@@ -165,7 +165,7 @@ const Tab: React.FC = () => {
           </View>
         </View>
         <CircleHeader />
-        
+
         <View style={styles.buttonBox}>
 
           {/* Left Section for home players */}
@@ -193,7 +193,7 @@ const Tab: React.FC = () => {
             </View>
 
             {/* Next Six Buttons for players on the bench */}
-            <PlayerButtons start={6} end={11} openActionView={openActionView}/>
+            <PlayerButtons start={6} end={11} openActionView={openActionView} />
 
             {/* Bottom Button, last player on bench */}
             <View style={styles.playerBoxButton}>
@@ -207,20 +207,44 @@ const Tab: React.FC = () => {
 
           {/* Middle Section still in progress */}
           <View style={[styles.teamPlayers, { backgroundColor: "white" }]}>
-           
+
           </View>
-          
+
           {/* Right Section is for the away team */}
           <View style={[styles.teamPlayers]}>
-          
+
             <CustomButton
               title="Byte"
               onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
               style={styles.byteButton}
             />
+            {/* First Four Buttons for players on the court */}
+            <PlayerButtons start={1} end={4} openActionView={openActionView} />
+
+            {/* Middle Single Button, player on court */}
+            {/*</View><View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>*/}
+            <View style={styles.playerBoxButton}>
+              <CustomButton
+                title="P5"
+                onPress={openActionView}
+                style={styles.playerButton}
+              />
+            </View>
+
+            {/* Next Six Buttons for players on the bench */}
+            <PlayerButtons start={6} end={11} openActionView={openActionView} />
+
+            {/* Bottom Button, last player on bench */}
+            <View style={styles.playerBoxButton}>
+              <CustomButton
+                title="P12"
+                onPress={() => Alert.alert('Button Pressed', 'You clicked Player 12!')}
+                style={styles.playerButton}
+              />
+            </View>
           </View>
         </View>
-        {showActionView && <ActionView closeActionView={closeActionView}/>}
+        {showActionView && <ActionView closeActionView={closeActionView} />}
 
       </View>
     </ScrollView>
@@ -240,15 +264,15 @@ const ActionView: React.FC<{ closeActionView: () => void }> = ({ closeActionView
 
       {/*Knapp för poäng 1-3 */}
       <View >
-      <PointButtons start={1} end={3} closeActionView={closeActionView} />
+        <PointButtons start={1} end={3} closeActionView={closeActionView} />
       </View>
 
       {/*Knapp för fouls */}
       <View style={styles.foulButton}>
-      <CustomButton 
-        title={'FOUL'} 
-        onPress={closeActionView} 
-        style={styles.pointButton} />
+        <CustomButton
+          title={'FOUL'}
+          onPress={closeActionView}
+          style={styles.pointButton} />
       </View>
 
     </View>
@@ -265,14 +289,14 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "auto",
   },
-  byteButton:{
+  byteButton: {
     backgroundColor: 'purple',
-    width:"90%", 
-    height:"5%",
-    paddingVertical: 0, 
-    top: 10, 
+    width: "90%",
+    height: "5%",
+    paddingVertical: 0,
+    top: 10,
     position: 'absolute',
-    borderRadius:8,    
+    borderRadius: 8,
   },
   pointBox: {
     borderColor: "black",
@@ -295,7 +319,7 @@ const styles = StyleSheet.create({
     paddingVertical: '5%',
     paddingHorizontal: '5%',
     flex: 1,
-    borderBlockColor:'black',
+    borderBlockColor: 'black',
     borderWidth: 1
   },
   infoCircle: {
@@ -331,7 +355,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 32,
     fontWeight: 'bold',
-    textAlign:"center",
+    textAlign: "center",
   },
   closeButton: {
     position: 'absolute',
@@ -349,12 +373,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  playerBoxButton:{
+  playerBoxButton: {
     flexDirection: 'row',
     justifyContent: "center",
     alignContent: "center",
     width: '100%',
-    flex:1,
+    flex: 1,
     marginHorizontal: '1%',
     marginVertical: "1%",
     gap: 10,
@@ -365,10 +389,10 @@ const styles = StyleSheet.create({
     //aspectRatio: 1, // Ensures square shape
     //marginVertical: '0%',
     flexDirection: "row",
-    justifyContent:"center",
-    borderRadius:8,
+    justifyContent: "center",
+    borderRadius: 8,
   },
-  pointButton:{
+  pointButton: {
     backgroundColor: 'blue',
     width: '80%', // Square button
     aspectRatio: 1, // Ensures square shape
@@ -378,9 +402,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  foulButton:{
-    alignSelf:'center',
-    width:'33%',
+  foulButton: {
+    alignSelf: 'center',
+    width: '33%',
   },
   buttonBox: {
     flex: 2,
@@ -397,10 +421,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, // Centers vertically
     alignSelf: 'center', // Centers horizontally
-    transform: [{ translateY:'40%'}], // Adjusts for exact centering
+    transform: [{ translateY: '40%' }], // Adjusts for exact centering
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 0},
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 5,
   }
