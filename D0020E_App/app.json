@@ -23,7 +23,10 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {"origin": "https://api.bnh.dust.ludd.ltu.se/api/"}
+      ],
       [
         "expo-splash-screen",
         {
@@ -33,6 +36,7 @@
           "backgroundColor": "#ffffff"
         }
       ]
+      
     ],
     "experiments": {
       "typedRoutes": true

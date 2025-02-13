@@ -1,23 +1,140 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Pressable, Button, GestureResponderEvent } from 'react-native';
 import { router, useNavigation } from 'expo-router';
 import * as yup from 'yup';
-import { Formik } from 'formik';
+import { Formik, FormikHelpers, FormikValues } from 'formik';
 import { navigate } from 'expo-router/build/global-state/routing';
+import Axios from 'axios'
+import axios from 'axios';
 
-/* npm install yup, npm install formik 
-   yup is used for schema validation, formik is used for 
-*/
+const apiCall = () => {
+  Axios({
+    url: "/api/users/",
+    method: "get",
+    baseURL: "https://buzzers.dust.ludd.ltu.se/api/"
+  })
+}
 
-
-/* export default function Tab() {
+const loginSchema = yup.object().shape({
+  email: yup
+    .string()
+//    .email('Vänligen ange en giltlig e-post')
+    .required('Ange E-post'),
+  passwd: yup
+    .string()
+    .min(4, ({ min }) => 'Passwd must be at least ${min} chars')
+    .required('Ange lösenord'),
+})
+function LogoPic() {
+  let fileuri = require("../../../assets/images/BuzzLogo.png");
   return (
-    <View style={styles.container}>
-      <Text>Tab [Home|Settings]</Text>
-    </View>
+    <Image style={styles.logo} source={fileuri} />
   );
 }
-*/
+
+interface LoginValues {
+  email: string;
+  passwd: string;
+}
+
+export default function loginpage() {
+  // const { token, user, saveToken, saveUser } = useAuth();
+  const nav = useNavigation();
+  const handlSubmit = async (values: LoginValues) => {
+    console.log("Login:", values)
+    try {
+      const response = await axios.post("https://api.bnh.dust.ludd.ltu.se/api/auth/",
+        { 
+          username: values.email,
+          password: values.passwd,
+        },
+        {
+          headers: {
+            "content-type": "application/json",
+          }
+        }
+        
+      );
+      console.log("Login ok:", response.data)
+    } catch(error){
+      if (error instanceof Error) {
+        console.error("Denied: Generic", error.message);
+      } else if (axios.isAxiosError(error)) {
+        console.error("Denied: Axios", error.message)
+      }
+      throw error;
+    }
+  } 
+
+  return (
+    <View style={styles.container}>
+      <LogoPic></LogoPic>
+      <Text style={styles.title}>Logga in</Text>
+      <Formik
+        validationSchema={loginSchema}
+        initialValues={{ email: '', passwd: '' }}
+        onSubmit={values => handlSubmit(values)}
+      >
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+          isValid,
+        }) => (
+          <>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input}
+                placeholder="E-post"
+                keyboardType="email-address"
+                onChangeText={handleChange('email')}
+                onBlur={handleBlur('email')}
+                value={values.email}
+              ></TextInput>
+            </View>
+            {errors.email && touched.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.input}
+                placeholder="Lösenord"
+                keyboardType="default"
+                secureTextEntry
+                onChangeText={handleChange('passwd')}
+                onBlur={handleBlur('passwd')}
+                value={values.passwd}
+              ></TextInput>
+            </View>
+            {errors.passwd && touched.passwd && (
+              <Text style={styles.errorText}>{errors.passwd}</Text>
+            )}
+
+            <TouchableOpacity
+              style={styles.button}
+              // onPress={()=> nav.navigate()}
+              disabled={!isValid}
+            >
+              <Text style={styles.buttonText}>Sign Up</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSubmit as (e?: GestureResponderEvent) => void}
+              disabled={!isValid}
+            >
+              <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
+          </>
+
+        )
+        }
+      </Formik>
+
+    </View>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -26,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#bcbcbc',
     width: '100%',
-    
+
   },
   title: {
     fontSize: 32,
@@ -73,99 +190,3 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   }
 });
-
-const loginSchema = yup.object().shape({
-  email: yup
-    .string()
-    .email('Vänligen ange en giltlig e-post')
-    .required('Ange E-post'),
-  passwd: yup
-    .string()
-    .min(4, ({ min }) => 'Passwd must be at least ${min} chars')
-    .required('Ange lösenord'),
-})
-function LogoPic(){
-    let fileuri=require("../../../assets/images/BuzzLogo.png");
-    return(
-        <Image style ={styles.logo} source ={fileuri}/>
-    );
-}
-export default function loginpage(){
-  // const { token, user, saveToken, saveUser } = useAuth();
-  const nav = useNavigation();
-  
-  return (
-    <View style={styles.container}>
-      <LogoPic></LogoPic>
-      <Text style={styles.title}>Logga in</Text>
-      <Formik
-        validationSchema={loginSchema}
-        initialValues={{ email: '', passwd: ''}}
-        // onSubmit={async (values) => {
-        //  await new Promise((resolve) => setTimeout(resolve, 500));
-        //  alert(JSON.stringify(values, null, 2)); 
-        //}}
-        onSubmit={() => 
-          useNavigation("/(tabs)/(index)/home")
-        }
-        >
-          {({
-            handleChange,
-            handleBlur,
-            handleSubmit,
-            values,
-            errors,
-            touched,
-            isValid,
-          }) => (
-            <>
-              <View style={styles.inputContainer}>
-                <TextInput style={styles.input}
-                placeholder="E-post"
-                keyboardType="email-address"
-                onChangeText={handleChange('email')}
-                onBlur={handleBlur('email')}
-                value={values.email}
-                ></TextInput>
-              </View>
-              {errors.email && touched.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
-              <View style={styles.inputContainer}>
-                <TextInput style={styles.input}
-                placeholder="Lösenord"
-                keyboardType="default"
-                secureTextEntry
-                onChangeText={handleChange('passwd')}
-                onBlur={handleBlur('passwd')}
-                value={values.passwd}
-                ></TextInput>
-              </View>
-              {errors.passwd && touched.passwd && (
-                <Text style={styles.errorText}>{errors.passwd}</Text>
-              )}
-
-            <TouchableOpacity
-              style={styles.button}
-              // onPress={()=> nav.navigate()}
-              disabled={!isValid}
-              >
-              <Text style={styles.buttonText}>Sign Up</Text>
-            </TouchableOpacity>
-
-            <Pressable
-              style={styles.button}
-              onPress={() => router.push("/(tabs)/(home)")}
-              disabled={isValid}
-            >
-              <Text style={styles.buttonText}>Login</Text>
-            </Pressable>
-            </>
-
-          ) 
-          }
-        </Formik>
-
-    </View>
-  )
-}
