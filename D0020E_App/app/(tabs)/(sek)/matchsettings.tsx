@@ -2,8 +2,16 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, TouchableOpacityPr
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
 import {router} from 'expo-router';
+import  Axios  from 'axios';
 
 const matchID = "123456"
+const apiCall = () => {
+    Axios({
+      url: "/api/matchup/match",
+      method: "post",
+      baseURL: "https://buzzers.dust.ludd.ltu.se/api/"
+    })
+}
 
 const TeamInputFunc = () => {
     const [homeTeam, onChangeHome] = React.useState('Hemmalag');
