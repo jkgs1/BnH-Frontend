@@ -13,6 +13,7 @@ export default function HomeLayout() {
           fontWeight: 'bold',
         },
       }}>
+      <Stack.Screen name="frontpage" options={{ headerShown: false }} />
       <Stack.Screen name="matchsettings" options={{ headerShown: false}}/>
       <Stack.Screen name="Sek" options={{ headerShown: false}}/>
     </Stack>

@@ -6,6 +6,8 @@ import { Formik, FormikHelpers, FormikValues } from 'formik';
 import { navigate } from 'expo-router/build/global-state/routing';
 import Axios from 'axios'
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const apiCall = () => {
   Axios({
@@ -26,7 +28,7 @@ const loginSchema = yup.object().shape({
     .required('Ange lösenord'),
 })
 function LogoPic() {
-  let fileuri = require("../../../assets/images/BuzzLogo.png");
+  let fileuri = require("../assets/images/BuzzLogo.png");
   return (
     <Image style={styles.logo} source={fileuri} />
   );
@@ -56,6 +58,10 @@ export default function loginpage() {
         
       );
       console.log("Login ok:", response.data)
+      const token = response.data;
+      await AsyncStorage.setItem("userToken", token);
+      
+
     } catch(error){
       if (error instanceof Error) {
         console.error("Denied: Generic", error.message);

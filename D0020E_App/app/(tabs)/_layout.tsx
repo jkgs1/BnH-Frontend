@@ -8,6 +8,7 @@ export default function TabLayout() {
         name="(home)"
         options={{
           title: 'Home',
+          headerShown: false,
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />,
         }} 
       />}
@@ -15,6 +16,7 @@ export default function TabLayout() {
         name="(index)"
         options={{
           title: "Teams",
+          headerShown: false,
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="male" color={color}/>
         }}
       />}
@@ -22,6 +24,7 @@ export default function TabLayout() {
         name="(sek)"
         options={{
           title: 'Sek',
+          headerShown: false,
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="futbol-o" color={color} />,
         }}
       />
@@ -29,6 +32,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
+          headerShown: false,
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
         }}
       />
