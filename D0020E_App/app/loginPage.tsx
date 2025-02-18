@@ -50,7 +50,8 @@ export default function loginpage() {
         
       );
 
-      const tokenToString = JSON.stringify(response.data.token);
+      // const tokenToString = JSON.stringify(response.data.token);
+      const tokenToString = response.data.token;
       console.log("Login ok:", tokenToString)
       await AsyncStorage.setItem("userToken", tokenToString);
       console.log("Token saved")

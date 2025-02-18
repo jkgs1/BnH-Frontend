@@ -4,7 +4,7 @@ import Axios from 'axios';
 import { useRouter, Router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const apiCall = async (router: Router, homeTeamId: string, awayTeamId: string) => {
+const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) => {
     const tokenString = await AsyncStorage.getItem("userToken");
     if(!tokenString) {
         console.log("No token found")
@@ -22,11 +22,10 @@ const apiCall = async (router: Router, homeTeamId: string, awayTeamId: string) =
             data: {
                 homeTeamId: homeTeamId,
                 awayTeamId: awayTeamId,
-                token: tokenString,
             },
             headers: {
                 "content-type": "application/json",
-                "Authorization": `Bearer ${tokenString}`
+                Authorization: `Token ${tokenString}`
             }
         });
         if (response.status === 200) {
@@ -42,24 +41,24 @@ const apiCall = async (router: Router, homeTeamId: string, awayTeamId: string) =
 }
 
 const teams = [
-    { id: '1', name: 'Team 1' },
-    { id: '2', name: 'Team 2' },
-    { id: '3', name: 'Team 3' },
-    { id: '4', name: 'Team 4' },
+    { id: 1, name: 'Team 1' },
+    { id: 2, name: 'Team 2' },
+    { id: 3, name: 'Team 3' },
+    { id: 4, name: 'Team 4' },
 ];
 
 export default function frontpage() {
     const router = useRouter();
 
-    const [homeTeamId, setHomeTeamId] = useState<string | null>(null);
-    const [awayTeamId, setAwayTeamId] = useState<string | null>(null);
+    const [homeTeamId, setHomeTeamId] = useState<number | null>(null);
+    const [awayTeamId, setAwayTeamId] = useState<number | null>(null);
 
     const [modalVisibleHome, setModalVisibleHome] = useState(false);
     const [modalVisibleAway, setModalVisibleAway] = useState(false);
 
     const handleTeamSelection = (
-        teamId: string,
-        setTeamId: React.Dispatch<React.SetStateAction<string | null>>,
+        teamId: number,
+        setTeamId: React.Dispatch<React.SetStateAction<number | null>>,
         setModalVisible: React.Dispatch<React.SetStateAction<boolean>>) => {
         setTeamId(teamId);
         setModalVisible(false);
@@ -75,7 +74,7 @@ export default function frontpage() {
             >
                 <Text style={styles.teamButtonText}>
                     {homeTeamId ? `Team 1: ${teams.find(team =>
-                        team.id === homeTeamId)?.name}` : 'Select Team 1'}
+                        team.id == homeTeamId)?.name}` : 'Select Team 1'}
                 </Text>
             </TouchableOpacity>
             
@@ -100,7 +99,7 @@ export default function frontpage() {
                     <View style={styles.modalContent}>
                         <FlatList
                             data={teams}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={styles.teamItem}
@@ -122,7 +121,7 @@ export default function frontpage() {
                     <View style={styles.modalContent}>
                         <FlatList
                             data={teams}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={styles.teamItem}
