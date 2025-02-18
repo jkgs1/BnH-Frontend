@@ -9,14 +9,6 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const apiCall = () => {
-  Axios({
-    url: "/api/users/",
-    method: "get",
-    baseURL: "https://buzzers.dust.ludd.ltu.se/api/"
-  })
-}
-
 const loginSchema = yup.object().shape({
   email: yup
     .string()
@@ -57,9 +49,11 @@ export default function loginpage() {
         }
         
       );
-      console.log("Login ok:", response.data)
-      const token = response.data;
-      await AsyncStorage.setItem("userToken", token);
+
+      const tokenToString = JSON.stringify(response.data.token);
+      console.log("Login ok:", tokenToString)
+      await AsyncStorage.setItem("userToken", tokenToString);
+      console.log("Token saved")
       
 
     } catch(error){

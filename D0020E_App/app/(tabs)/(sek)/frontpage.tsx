@@ -5,10 +5,15 @@ import { useRouter, Router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const apiCall = async (router: Router, homeTeamId: string, awayTeamId: string) => {
-    const token = await AsyncStorage.getItem("userToken");
-    if(!token){
+    const tokenString = await AsyncStorage.getItem("userToken");
+    if(!tokenString) {
         console.log("No token found")
+        alert("No token found")
+        router.push("/loginPage")
+        return;
     }
+    console.log("Token found: ", tokenString);
+
     try {
         const response = await Axios({
             url: "/api/matchup/match/",
@@ -17,19 +22,23 @@ const apiCall = async (router: Router, homeTeamId: string, awayTeamId: string) =
             data: {
                 homeTeamId: homeTeamId,
                 awayTeamId: awayTeamId,
-                userToken: token,
+                token: tokenString,
             },
             headers: {
                 "content-type": "application/json",
-                Authorization: `Bearer ${token}`
+                "Authorization": `Bearer ${tokenString}`
             }
         });
         if (response.status === 200) {
             router.push("/matchsettings");
         }
-    } catch (error) {
+    } catch (error: any) {
         console.log(error)
     }
+    console.log("Headers: ", {
+        "content-type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+    });
 }
 
 const teams = [
