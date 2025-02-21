@@ -9,6 +9,7 @@ import {getTeamsfromApi, Team} from "@/app/getTeamsapi";
 const TeamGetter: React.FC = () => {
     const [teams, setTeams] = useState<Team[]>([]);
 
+    {/* Hook call to save team information from @link:getTeamsapi.tsx with setTeams */}
     useEffect(() => {
         const fetchData = async () => {
             const result = await getTeamsfromApi();
@@ -21,12 +22,15 @@ const TeamGetter: React.FC = () => {
 
     const router = useRouter();
 
+    {/* used to set teams ID, needed for posting to database */}
     const [homeTeamId, setHomeTeamId] = useState<number | null>(null);
     const [awayTeamId, setAwayTeamId] = useState<number | null>(null);
 
+    {/* used for hiding and showing modal component when returning page */}
     const [modalVisibleHome, setModalVisibleHome] = useState(false);
     const [modalVisibleAway, setModalVisibleAway] = useState(false);
 
+    {/* sets the types for values when picking teams */}
     const handleTeamSelection = (
         teamId: number,
         setTeamId: React.Dispatch<React.SetStateAction<number | null>>,
@@ -122,6 +126,7 @@ const TeamGetter: React.FC = () => {
     );
 }
 
+{/* checks that user has a valid token and then posts game to database */}
 const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) => {
     const tokenString = await AsyncStorage.getItem("userToken");
     if(!tokenString) {
@@ -146,9 +151,8 @@ const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) =
                 Authorization: `Token ${tokenString}`
             }
         });
-
-            router.push("/matchsettings");
-
+        const matchId: number = response.data.id;
+        router.push(`./match/${matchId}`)
     } catch (error: any) {
         console.log(error)
     }
@@ -189,7 +193,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "black",
+        backgroundColor: "rgba(0,0,0,0.5)",
     },
     modalContent: {
         width: "80%",

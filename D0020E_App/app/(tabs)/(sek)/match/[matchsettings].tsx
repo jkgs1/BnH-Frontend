@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
-import {router} from 'expo-router';
+import {router, useLocalSearchParams} from 'expo-router';
 import  Axios  from 'axios';
 
 const matchID = "123456"
@@ -79,6 +79,7 @@ const MatchStartButton: React.FC<CustomButtonProps> = ({title, onPress, style}) 
 };
 
 export default function Tab() {
+    const { matchId } = useLocalSearchParams();
     return (
         <View style={styles.container}>
             {/* Header */}

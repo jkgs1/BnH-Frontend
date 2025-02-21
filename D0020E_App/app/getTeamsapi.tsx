@@ -1,3 +1,5 @@
+{/* Document for occurring api calls */}
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Axios from "axios";
 import {useEffect} from "react";
@@ -11,6 +13,8 @@ export interface Team {
     club: string | null;
     players: [];
 }
+
+{/* function to get all teams connected to token */}
 
 export const getTeamsfromApi = async () => {
     const tokenString = await AsyncStorage.getItem('userToken');
