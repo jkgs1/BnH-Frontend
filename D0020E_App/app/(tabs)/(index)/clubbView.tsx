@@ -3,65 +3,26 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'rea
 import { Link, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Axios from 'axios';
+import {getTeamsfromApi, Team} from "@/app/getTeamsapi";
 
-interface Team {
-  id: number;
-  name: string;
-  logo: string | null;
-  description: string;
-  club: string | null;
-  players: [];
-}
+const Tab: React.FC = () => {
 
-export default function Tab() {
-  const [teams, setTeams] = useState<Team[]>([]); // State to store fetched teams
-  const [loading, setLoading] = useState<boolean>(true); // Loading state
-  const [error, setError] = useState<string | null>(null); // Error state
   const router = useRouter();
+  const [teams, setTeams] = useState<Team[]>([]);
 
-  // Fetch teams from the API
-  const getTeamsfromApi = async () => {
-    const tokenString = await AsyncStorage.getItem('userToken');
-    if (!tokenString) {
-      console.error('No token found');
-      alert('No token found');
-      router.push('/loginPage');
-      return;
-    }
-    try {
-      setLoading(true);
-      const response = await Axios({
-        url: '/api/clubber/clubs/5/teams/',
-        method: 'get',
-        baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
-        headers: {
-          'content-type': 'application/json',
-          Authorization: `Bearer ${tokenString}`, // Add token to the Authorization header
-        },
-      });
-
-      // Assuming response.data contains the team data
-      if (response.data && Array.isArray(response.data)) {
-        setTeams(response.data);
-      } else {
-        console.error('Invalid response data:', response.data);
-        setError('Invalid data received from the server.');
-      }
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-      setError('Failed to fetch teams. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch teams when the component mounts
   useEffect(() => {
-    getTeamsfromApi();
-  }, []);
+    const fetchData = async () => {
+      const result = await getTeamsfromApi();
+      if (result) {
+        setTeams(result)
+      }
+    }
+    fetchData();
+  },[]);
 
   // Render teams dynamically
   const renderTeams = () => {
+    console.log(teams)
     return teams.map((team) => (
         <Link key={team.id} href={`/team/${team.id}`} asChild>
           <TouchableOpacity style={styles.teamBox}>
@@ -77,19 +38,20 @@ export default function Tab() {
         <View style={styles.mainBox}>
           <View style={styles.titleBox}>
             <Text style={styles.titleText}>Club Name</Text>
+
           </View>
           <View style={styles.teamList}>
-            {loading ? (
-                <ActivityIndicator size="large" color="#0000ff" />
-            ) : error ? (
-                <Text style={styles.errorText}>{error}</Text>
-            ) : (
-                renderTeams()
-            )}
+            {renderTeams()}
           </View>
+
         </View>
       </View>
   );
+}
+export default function welcomeScreen() {
+  return(
+      <Tab />
+  )
 }
 
 const styles = StyleSheet.create({

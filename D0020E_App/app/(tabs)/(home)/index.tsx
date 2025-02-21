@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     backgroundColor: "#1E90FF",
     marginBottom: 60,
+    borderRadius: 20,
   },
   box1: {
     flex: 1,
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
 });
 
 export default function welcomeScreen() {
-  const klubbNamn = ["Gammelstads Basketbollklubb"]
+  const klubbNamn = ["Clubb Name"]
   return(
   <View
   style={styles.container}

@@ -1,53 +1,24 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Axios from 'axios';
 import { useRouter, Router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getTeamsfromApi, Team} from "@/app/getTeamsapi";
 
-const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) => {
-    const tokenString = await AsyncStorage.getItem("userToken");
-    if(!tokenString) {
-        console.log("No token found")
-        alert("No token found")
-        router.push("/loginPage")
-        return;
-    }
-    console.log("Token found: ", tokenString);
 
-    try {
-        const response = await Axios({
-            url: "/api/matchup/match/",
-            method: "post",
-            baseURL: "https://api.bnh.dust.ludd.ltu.se/",
-            data: {
-                homeTeamId: homeTeamId,
-                awayTeamId: awayTeamId,
-            },
-            headers: {
-                "content-type": "application/json",
-                Authorization: `Token ${tokenString}`
+const TeamGetter: React.FC = () => {
+    const [teams, setTeams] = useState<Team[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getTeamsfromApi();
+            if (result) {
+                setTeams(result)
             }
-        });
-        if (response.status === 200) {
-            router.push("/matchsettings");
         }
-    } catch (error: any) {
-        console.log(error)
-    }
-    console.log("Headers: ", {
-        "content-type": "application/json",
-        Authorization: `Bearer ${tokenString}`,
-    });
-}
+        fetchData();
+    },[]);
 
-const teams = [
-    { id: 1, name: 'Team 1' },
-    { id: 2, name: 'Team 2' },
-    { id: 3, name: 'Team 3' },
-    { id: 4, name: 'Team 4' },
-];
-
-export default function frontpage() {
     const router = useRouter();
 
     const [homeTeamId, setHomeTeamId] = useState<number | null>(null);
@@ -62,6 +33,7 @@ export default function frontpage() {
         setModalVisible: React.Dispatch<React.SetStateAction<boolean>>) => {
         setTeamId(teamId);
         setModalVisible(false);
+        console.log("Team selected: ", teamId);
     };
 
     return (
@@ -73,22 +45,22 @@ export default function frontpage() {
                 onPress={() => setModalVisibleHome(true)}
             >
                 <Text style={styles.teamButtonText}>
-                    {homeTeamId ? `Team 1: ${teams.find(team =>
-                        team.id == homeTeamId)?.name}` : 'Select Team 1'}
+                    {homeTeamId ? `Team 1: ${teams.find(teams =>
+                        teams.id == homeTeamId)?.name}` : 'Select Team 1'}
                 </Text>
             </TouchableOpacity>
-            
+
             {/* Select Team 2 Button */}
             <TouchableOpacity
                 style={styles.teamButton}
                 onPress={() => setModalVisibleAway(true)}
             >
                 <Text style={styles.teamButtonText}>
-                    {awayTeamId ? `Team 2: ${teams.find(team => 
+                    {awayTeamId ? `Team 2: ${teams.find(team =>
                         team.id === awayTeamId)?.name}` : 'Select Team 2'}
                 </Text>
             </TouchableOpacity>
-            
+
             {/* Modal is used to open a menu component and FlatList displays a list of teams */}
             <Modal
                 visible={modalVisibleHome}
@@ -112,6 +84,7 @@ export default function frontpage() {
                     </View>
                 </View>
             </Modal>
+
             <Modal
                 visible={modalVisibleAway}
                 animationType="slide"
@@ -140,8 +113,8 @@ export default function frontpage() {
                 style={styles.startMatchBox}
                 onPress={() => {
                     if (homeTeamId && awayTeamId){
-                    apiCall(router, homeTeamId, awayTeamId)
-                }}}
+                        apiCall(router, homeTeamId, awayTeamId)
+                    }}}
             >
                 <Text style={styles.titleText}>Press here to generate new match</Text>
             </TouchableOpacity>
@@ -149,11 +122,54 @@ export default function frontpage() {
     );
 }
 
+const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) => {
+    const tokenString = await AsyncStorage.getItem("userToken");
+    if(!tokenString) {
+        console.log("No token found")
+        alert("No token found")
+        router.push("/loginPage")
+        return;
+    }
+    console.log("Token found: ", tokenString);
+
+    try {
+        const response = await Axios({
+            url: "/api/matchup/match/",
+            method: "post",
+            baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+            data: {
+                homeTeamId: homeTeamId,
+                awayTeamId: awayTeamId,
+            },
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Token ${tokenString}`
+            }
+        });
+
+            router.push("/matchsettings");
+
+    } catch (error: any) {
+        console.log(error)
+    }
+    console.log("Headers: ", {
+        "content-type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+    });
+}
+
+export default function frontpage() {
+    return(
+        <TeamGetter />
+    )
+}
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+
     },
     startMatchBox: {
         justifyContent: "center",
