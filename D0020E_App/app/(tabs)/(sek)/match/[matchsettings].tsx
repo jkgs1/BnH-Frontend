@@ -6,11 +6,18 @@ import  Axios  from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {getTeamsfromApi, getTeamFromId, Team} from "@/app/getTeamsapi";
 
+interface Matchprops {
+    id: number;
+    homeTeamId: number;
+    awayTeamId: number;
+}
+
 const apiCall = async () => {
     const tokenString = await AsyncStorage.getItem("userToken");
     const matchIDstring = await AsyncStorage.getItem("matchid");
 
     const matchID= Number(matchIDstring);
+    console.log("Vi hämtar matchidet som:", matchID);
 
     if(!matchID) {
         console.log("No match found")
@@ -22,19 +29,22 @@ const apiCall = async () => {
     }
     console.log("Match found: ", matchID);
 
+    {/* gets match information based on matchID */}
+    // TODO: Den här returnar en array med alla matcher, varför??
     try {
         const response = await Axios({
-            url: `/api/matchup/match/?=${matchID}/`,
+            url: `/api/matchup/match/`,
             method: "get",
             baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+            params: {id: matchID},
             headers: {
                 "content-type": "application/json",
                 Authorization: `Token ${tokenString}`
             }
         });
-        const homeTeamId = response.data.homeTeamId;
-        const awayTeamId = response.data.awayTeamId;
-        return {homeTeamId, awayTeamId, matchID};
+
+        console.log("this is what apiCall returns:", response.data.results);
+        return response.data.results as Matchprops[];
     } catch (error: any) {
         console.log("Error in apiCall")
         console.log(error)
@@ -54,7 +64,9 @@ const ThisIsAFunction: React.FC = () => {
             const result = await apiCall();
             if (result) {
                 setHomeTeamId(result.homeTeamId)
+                console.log(result.homeTeamId);
                 setAwayTeamId(result.awayTeamId)
+                console.log(result.awayTeamId);
                 setMatchID(result.matchID)
             }
         }
@@ -68,11 +80,49 @@ const ThisIsAFunction: React.FC = () => {
                 const result = await getTeamFromId(homeTeamId, awayTeamId);
                 if (result) {
                     setTeams(result)
+                    console.log("This is from the second hook call:", result)
                 }
             }
         }
         fetchData();
     },[]);
+
+    const getTeamNameById = (teams: Team[], teamId: number | undefined): string => {
+        const team = teams.find((team) => team.id === teamId);
+        return team ? team.name : "Team not found";
+    };
+    console.log("This is the teams:", teams);
+
+    const TeamInputFunc = () => {
+        const [homeTeam, onChangeHome] = React.useState(getTeamNameById(teams, homeTeamId));
+        const [awayTeam, onChangeAway] = React.useState('Bortalag');
+
+        return (
+            <SafeAreaProvider>
+                <SafeAreaView>
+
+                    <View style={styles.teamOptions}>
+                        <TextInput
+                            style={styles.teamInput}
+                            onChangeText={onChangeHome}
+                            value={homeTeam}
+                            keyboardType="default"
+                            spellCheck={false}
+                            autoCorrect={false}
+                        />
+                        <TextInput
+                            style={styles.teamInput}
+                            onChangeText={onChangeAway}
+                            value={awayTeam}
+                            keyboardType="default"
+                            spellCheck={false}
+                            autoCorrect={false}
+                        />
+                    </View>
+                </SafeAreaView>
+            </SafeAreaProvider>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -118,36 +168,6 @@ const ThisIsAFunction: React.FC = () => {
     );
 }
 
-const TeamInputFunc = () => {
-    const [homeTeam, onChangeHome] = React.useState('Hemmalag');
-    const [awayTeam, onChangeAway] = React.useState('Bortalag');
-
-    return (
-        <SafeAreaProvider>
-            <SafeAreaView>
-
-                <View style={styles.teamOptions}>
-                    <TextInput
-                        style={styles.teamInput}
-                        onChangeText={onChangeHome}
-                        value={homeTeam}
-                        keyboardType="default"
-                        spellCheck={false}
-                        autoCorrect={false}
-                    />
-                    <TextInput
-                        style={styles.teamInput}
-                        onChangeText={onChangeAway}
-                        value={awayTeam}
-                        keyboardType="default"
-                        spellCheck={false}
-                        autoCorrect={false}
-                    />
-                </View>
-            </SafeAreaView>
-        </SafeAreaProvider>
-    );
-};
 interface CustomButtonProps extends TouchableOpacityProps {
     title: string;
     style?: object;

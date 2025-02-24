@@ -49,6 +49,7 @@ export const getTeamFromId = async (homeTeamId: number, awayTeamId: number) => {
         router.push('/loginPage');
         return;
     }
+    console.log("Here is the token used in getTEamFromId", tokenString);
     try {
         const response = await Axios({
             url: '/api/clubber/teams/',
@@ -63,7 +64,7 @@ export const getTeamFromId = async (homeTeamId: number, awayTeamId: number) => {
                 Authorization: `Bearer ${tokenString}`, // Add token to the Authorization header
             },
         });
-        return response.data.results as Team[];
+        return response.data as Team[];
     } catch (error) {
         console.log("Error in getTeamFromId", error);
         console.log(error);
