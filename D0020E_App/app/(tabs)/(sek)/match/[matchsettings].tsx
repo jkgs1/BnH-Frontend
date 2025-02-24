@@ -1,85 +1,79 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import React from 'react';
-import {router, useLocalSearchParams} from 'expo-router';
+import React, {useEffect, useState} from 'react';
+import {Router, router, useLocalSearchParams} from 'expo-router';
 import  Axios  from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {getTeamsfromApi, getTeamFromId, Team} from "@/app/getTeamsapi";
 
-const matchID = "123456"
-const apiCall = () => {
-    Axios({
-      url: "/api/matchup/match",
-      method: "post",
-      baseURL: "https://buzzers.dust.ludd.ltu.se/api/"
-    })
+const apiCall = async () => {
+    const tokenString = await AsyncStorage.getItem("userToken");
+    const matchIDstring = await AsyncStorage.getItem("matchid");
+
+    const matchID= Number(matchIDstring);
+
+    if(!matchID) {
+        console.log("No match found")
+        alert("No match found")
+        return;
+    }
+    if(!tokenString) {
+        console.log("No tokenString")
+    }
+    console.log("Match found: ", matchID);
+
+    try {
+        const response = await Axios({
+            url: `/api/matchup/match/?=${matchID}/`,
+            method: "get",
+            baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Token ${tokenString}`
+            }
+        });
+        const homeTeamId = response.data.homeTeamId;
+        const awayTeamId = response.data.awayTeamId;
+        return {homeTeamId, awayTeamId, matchID};
+    } catch (error: any) {
+        console.log("Error in apiCall")
+        console.log(error)
+    }
 }
 
-const TeamInputFunc = () => {
-    const [homeTeam, onChangeHome] = React.useState('Hemmalag');
-    const [awayTeam, onChangeAway] = React.useState('Bortalag');
+const ThisIsAFunction: React.FC = () => {
 
-    return (
-        <SafeAreaProvider>
-            <SafeAreaView>
+    const [homeTeamId, setHomeTeamId] = useState<number | undefined>();
+    const [awayTeamId, setAwayTeamId] = useState<number | undefined>();
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [matchID, setMatchID] = useState<number | undefined>();
 
-                <View style={styles.teamOptions}>
-                    <TextInput
-                        style={styles.teamInput}
-                        onChangeText={onChangeHome}
-                        value={homeTeam}
-                        keyboardType="default"
-                        spellCheck={false}
-                        autoCorrect={false}
-                    />
-                    <TextInput
-                        style={styles.teamInput}
-                        onChangeText={onChangeAway}
-                        value={awayTeam}
-                        keyboardType="default"
-                        spellCheck={false}
-                        autoCorrect={false}
-                    />
-                </View>
-            </SafeAreaView>
-        </SafeAreaProvider>
-    );
-};
+    {/* gets teams id from apiCall() function above */}
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await apiCall();
+            if (result) {
+                setHomeTeamId(result.homeTeamId)
+                setAwayTeamId(result.awayTeamId)
+                setMatchID(result.matchID)
+            }
+        }
+        fetchData();
+    },[]);
 
-interface CustomButtonProps extends TouchableOpacityProps {
-    title: string;
-    style?: object;
-}
-const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
+    {/* gets team information with /getTeamsapi : func getTeamFromId */}
+    useEffect(() => {
+        const fetchData = async () => {
+            if (homeTeamId!==undefined && awayTeamId!==undefined){
+                const result = await getTeamFromId(homeTeamId, awayTeamId);
+                if (result) {
+                    setTeams(result)
+                }
+            }
+        }
+        fetchData();
+    },[]);
 
-    return (
-        <TouchableOpacity style={styles.button} onPress={onPress}>
-            <View style={styles.teamOptions}>
-                <Text style={styles.buttonText}>{title}</Text>
-            </View>
-        </TouchableOpacity>
-    );
-};
-const MatchOptionButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
-
-    return (
-        <TouchableOpacity style={styles.matchButtons} onPress={onPress}>
-            <View style={styles.teamOptions}>
-                <Text style={styles.buttonText}>{title}</Text>
-            </View>
-        </TouchableOpacity>
-    );
-};
-const MatchStartButton: React.FC<CustomButtonProps> = ({title, onPress, style}) => {
-    return(
-        <TouchableOpacity style={styles.greenButton}onPress={()=> 
-         router.push("/Sek")   
-        }>
-            <Text style={styles.buttonText}>{title}</Text>
-        </TouchableOpacity>
-    );
-};
-
-export default function Tab() {
-    const { matchId } = useLocalSearchParams();
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -113,7 +107,7 @@ export default function Tab() {
             <View style={{alignContent:"flex-start",flexDirection:"row"}}>
                 <View style={styles.matchOptions}>
                     <MatchOptionButton title='Matchfunktionärer'/>
-                    
+
                 </View>
             </View>
 
@@ -122,6 +116,77 @@ export default function Tab() {
             </View>
         </View>
     );
+}
+
+const TeamInputFunc = () => {
+    const [homeTeam, onChangeHome] = React.useState('Hemmalag');
+    const [awayTeam, onChangeAway] = React.useState('Bortalag');
+
+    return (
+        <SafeAreaProvider>
+            <SafeAreaView>
+
+                <View style={styles.teamOptions}>
+                    <TextInput
+                        style={styles.teamInput}
+                        onChangeText={onChangeHome}
+                        value={homeTeam}
+                        keyboardType="default"
+                        spellCheck={false}
+                        autoCorrect={false}
+                    />
+                    <TextInput
+                        style={styles.teamInput}
+                        onChangeText={onChangeAway}
+                        value={awayTeam}
+                        keyboardType="default"
+                        spellCheck={false}
+                        autoCorrect={false}
+                    />
+                </View>
+            </SafeAreaView>
+        </SafeAreaProvider>
+    );
+};
+interface CustomButtonProps extends TouchableOpacityProps {
+    title: string;
+    style?: object;
+}
+const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
+
+    return (
+        <TouchableOpacity style={styles.button} onPress={onPress}>
+            <View style={styles.teamOptions}>
+                <Text style={styles.buttonText}>{title}</Text>
+            </View>
+        </TouchableOpacity>
+    );
+};
+const MatchOptionButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
+
+    return (
+        <TouchableOpacity style={styles.matchButtons} onPress={onPress}>
+            <View style={styles.teamOptions}>
+                <Text style={styles.buttonText}>{title}</Text>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+const MatchStartButton: React.FC<CustomButtonProps> = ({title, onPress, style}) => {
+    return(
+        <TouchableOpacity style={styles.greenButton}onPress={()=>
+         router.push("/Sek")
+        }>
+            <Text style={styles.buttonText}>{title}</Text>
+        </TouchableOpacity>
+    );
+};
+
+export default function Tab() {
+    return(
+        <ThisIsAFunction/>
+    )
 }
 
 const styles = StyleSheet.create({

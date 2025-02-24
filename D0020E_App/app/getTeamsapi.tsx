@@ -36,6 +36,36 @@ export const getTeamsfromApi = async () => {
         });
         return response.data.results as Team[];
     } catch (error) {
+        console.log("Error in getTeamsfromApi", error);
+        console.log(error);
+    }
+}
+
+export const getTeamFromId = async (homeTeamId: number, awayTeamId: number) => {
+    const tokenString = await AsyncStorage.getItem('userToken');
+    if (!tokenString) {
+        console.error('No token found');
+        alert('No token found');
+        router.push('/loginPage');
+        return;
+    }
+    try {
+        const response = await Axios({
+            url: '/api/clubber/teams/',
+            method: 'get',
+            baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+            data: {
+                homeTeam: homeTeamId,
+                awayTeam: awayTeamId,
+            },
+            headers: {
+                'content-type': 'application/json',
+                Authorization: `Bearer ${tokenString}`, // Add token to the Authorization header
+            },
+        });
+        return response.data.results as Team[];
+    } catch (error) {
+        console.log("Error in getTeamFromId", error);
         console.log(error);
     }
 }
