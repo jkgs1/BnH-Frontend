@@ -1,77 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, TouchableOpacityProps, ScrollView } from 'react-native';
-import axios from 'axios'
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const baseURL = "https://api.bnh.dust.ludd.ltu.se/api/matchup";
-
-//  "https://api.bnh.dust.ludd.ltu.se/api/matchup/match/event";
-
-const api = axios.create({
-    baseURL: baseURL,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  
-  
-  const updatePlayerScore = async ( playerId: number, points: number) => {
-    try {
-      //Gets the matchId
-      const matchIDstring = await AsyncStorage.getItem("matchid");
-      const matchId= Number(matchIDstring);
-
-      //Uses MatchId and playerId to upload the updated points to database
-      const response = await api.patch(`/match${matchId}/event/players/${playerId}/score`, { points }); // måste byta url så det blit rätt
-      return response.data;
-    } catch (error) {
-      console.error('Error updating player score:', error);
-      throw error;
-    }
-  };
-  
-  const updatePlayerFouls = async (matchId: number,playerId: number, player:number,fouls: number) => {
-    try {
-      const response = await api.patch(`/${matchId}/event/players/${playerId}/fouls`, { fouls });
-      return response.data;
-    } catch (error) {
-      console.error('Error updating player fouls:', error);
-      throw error;
-    }
-  };
-  {/*
-  export const updatePlayerOnCourt = async (matchId: number,playerId: number, playerId:number) => {
-    try {
-      const response = await api.patch(`/${matchId}/event/players/${playerId}/fouls`, { fouls });
-      return response.data;
-    } catch (error) {
-      console.error('Error updating players on court:', error);
-      throw error;
-    }
-  };  
-    */}
-  
-  const fetchMatchId = async () => {
-    try {
-      const matchIDstring = await AsyncStorage.getItem("matchid");
-      const matchId= Number(matchIDstring);
-      return matchId;
-    } catch (error) {
-      console.error('Error fetching match data:', error);
-      throw error;
-    }
-  };
-
-  const fetchPlayerId = async (matchId: number) => {
-    try {
-      const response = await api.get(`/match${matchId}/event/players/`); // måste byta url så det blit rätt
-      return response.data;
-    } catch (error) {
-      console.error('Error updating player score:', error);
-      throw error;
-    }
-  }
-
+import { FullWindowOverlay } from 'react-native-screens';
 
 // Define TypeScript interfaces for props
 interface CustomButtonProps extends TouchableOpacityProps {
@@ -141,9 +70,7 @@ const PlayerButtons: React.FC<{ start: number; end: number; openActionView: () =
   );
 };
 
-
-const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void; playerId: number;}> =
-    ({ start, end, closeActionView, playerId }) => {
+const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void }> = ({ start, end, closeActionView }) => {
   const points = Array.from({ length: end - start + 1 }, (_, index) => start + index);
 
   return (
@@ -152,12 +79,7 @@ const PointButtons: React.FC<{ start: number; end: number; closeActionView: () =
         <CustomButton
           key={point}
           title={`${point} Poäng`}
-          onPress={
-            async () => {
-              await updatePlayerScore( playerId, point); // matchId bara 1, bör ändras.
-              closeActionView();
-            }
-          }
+          onPress={closeActionView}
           style={styles.pointButton}
         />
       ))}
@@ -171,7 +93,7 @@ const CircleHeader = () => {
   const [timeoutsRight, setTimeoutsRight] = useState<number>(3);
   const [foulsRight, setFoulsRight] = useState<number>(1);
 
-  const currentPeriod = 2;
+  const currentPeriod= 2;
 
   const renderInfoCircles = (count: number, total: number) => {
     return Array.from({ length: total }).map((_, index) => (
@@ -202,10 +124,10 @@ const CircleHeader = () => {
           </View>
         </View>
       </View>
-
+      
       {/* Middle */}
-      <View style={{ alignItems: "center", }}>
-        <Text style={{ fontSize: 28, fontWeight: "bold" }}>Period: {currentPeriod}</Text>
+      <View style={{alignItems:"center",}}>
+      <Text style={{ fontSize: 28, fontWeight: "bold"}}>Period: {currentPeriod}</Text>
       </View>
 
       {/* Right */}
@@ -232,9 +154,6 @@ const Tab: React.FC = () => {
   const [showActionView, setShowActionView] = useState(false);
   const openActionView = () => setShowActionView(true);
   const closeActionView = () => setShowActionView(false);
-
-
-
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={[styles.container, { flexDirection: 'column' }]}>
@@ -245,7 +164,7 @@ const Tab: React.FC = () => {
           </View>
         </View>
         <CircleHeader />
-
+        
         <View style={styles.buttonBox}>
 
           {/* Left Section for home players */}
@@ -263,16 +182,17 @@ const Tab: React.FC = () => {
             <PlayerButtons start={1} end={4} openActionView={openActionView} />
 
             {/* Middle Single Button, player on court */}
+            {/*</View><View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>*/}
             <View style={styles.playerBoxButton}>
               <CustomButton
                 title="P5"
-                onPress={() => openActionView()}
+                onPress={openActionView}
                 style={styles.playerButton}
               />
             </View>
 
             {/* Next Six Buttons for players on the bench */}
-            <PlayerButtons start={6} end={11} openActionView={openActionView} />
+            <PlayerButtons start={6} end={11} openActionView={openActionView}/>
 
             {/* Bottom Button, last player on bench */}
             <View style={styles.playerBoxButton}>
@@ -286,66 +206,29 @@ const Tab: React.FC = () => {
 
           {/* Middle Section still in progress */}
           <View style={[styles.teamPlayers, { backgroundColor: "white" }]}>
-
+           
           </View>
-
+          
           {/* Right Section is for the away team */}
           <View style={[styles.teamPlayers]}>
-
+          
             <CustomButton
               title="Byte"
               onPress={() => Alert.alert('Button Pressed', 'You clicked the Byte button!')}
               style={styles.byteButton}
             />
-            {/* First Four Buttons for players on the court */}
-            <PlayerButtons start={1} end={4} openActionView={openActionView} />
-
-            {/* Middle Single Button, player on court */}
-            {/*</View><View style={{ flex: 1, marginVertical: '2%', marginHorizontal: '2%', alignItems: 'center' }}>*/}
-            <View style={styles.playerBoxButton}>
-              <CustomButton
-                title="P5"
-                onPress={() => openActionView()}
-                style={styles.playerButton}
-              />
-            </View>
-
-            {/* Next Six Buttons for players on the bench */}
-            <PlayerButtons start={6} end={11} openActionView={openActionView} />
-
-            {/* Bottom Button, last player on bench */}
-            <View style={styles.playerBoxButton}>
-              <CustomButton
-                title="P12"
-                onPress={() => Alert.alert('Button Pressed', 'You clicked Player 12!')}
-                style={styles.playerButton}
-              />
-            </View>
           </View>
         </View>
-        {showActionView &&
-          <ActionView closeActionView={closeActionView} playerId={}/>
-        }
+        {showActionView && <ActionView closeActionView={closeActionView}/>}
+
       </View>
     </ScrollView>
   );
 };
 
 
-const ActionView: React.FC<{ closeActionView: () => void; playerId: number;  }> = ({ closeActionView, playerId,   }) => {
-  const [show, setShow] = useState(false);
-  const toggleShow = () => setShow(!show);
-
-  const handleFoul = async () => {
-    try {
-      //await updatePlayerFouls(playerId, playerId, 1); // Add 1 foul to the player
-      closeActionView();                    // Close the action view
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update player fouls.');
-    }
-  };
-
-
+const ActionView: React.FC<{ closeActionView: () => void }> = ({ closeActionView }) => {
+  
   return (
     <View style={styles.actionWindowView}>
       <TouchableOpacity onPress={closeActionView} style={styles.closeButton}>
@@ -354,15 +237,15 @@ const ActionView: React.FC<{ closeActionView: () => void; playerId: number;  }> 
 
       {/*Knapp för poäng 1-3 */}
       <View >
-        <PointButtons start={1} end={3} closeActionView={closeActionView} playerId={playerId}  />
+      <PointButtons start={1} end={3} closeActionView={closeActionView} />
       </View>
 
-      {/*Knapp för fouls. behöver ID för två spelare */}
+      {/*Knapp för fouls */}
       <View style={styles.foulButton}>
-        <CustomButton
-          title={'FOUL'}
-          onPress={handleFoul}
-          style={styles.pointButton} />
+      <CustomButton 
+        title={'FOUL'} 
+        onPress={closeActionView} 
+        style={styles.pointButton} />
       </View>
 
     </View>
@@ -379,14 +262,14 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "auto",
   },
-  byteButton: {
+  byteButton:{
     backgroundColor: 'purple',
-    width: "90%",
-    height: "5%",
-    paddingVertical: 0,
-    top: 10,
+    width:"90%", 
+    height:"5%",
+    paddingVertical: 0, 
+    top: 10, 
     position: 'absolute',
-    borderRadius: 8,
+    borderRadius:8,    
   },
   pointBox: {
     borderColor: "black",
@@ -409,7 +292,7 @@ const styles = StyleSheet.create({
     paddingVertical: '5%',
     paddingHorizontal: '5%',
     flex: 1,
-    borderBlockColor: 'black',
+    borderBlockColor:'black',
     borderWidth: 1
   },
   infoCircle: {
@@ -445,7 +328,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 32,
     fontWeight: 'bold',
-    textAlign: "center",
+    textAlign:"center",
   },
   closeButton: {
     position: 'absolute',
@@ -463,12 +346,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  playerBoxButton: {
+  playerBoxButton:{
     flexDirection: 'row',
     justifyContent: "center",
     alignContent: "center",
     width: '100%',
-    flex: 1,
+    flex:1,
     marginHorizontal: '1%',
     marginVertical: "1%",
     gap: 10,
@@ -479,10 +362,10 @@ const styles = StyleSheet.create({
     //aspectRatio: 1, // Ensures square shape
     //marginVertical: '0%',
     flexDirection: "row",
-    justifyContent: "center",
-    borderRadius: 8,
+    justifyContent:"center",
+    borderRadius:8,
   },
-  pointButton: {
+  pointButton:{
     backgroundColor: 'blue',
     width: '80%', // Square button
     aspectRatio: 1, // Ensures square shape
@@ -492,9 +375,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  foulButton: {
-    alignSelf: 'center',
-    width: '33%',
+  foulButton:{
+    alignSelf:'center',
+    width:'33%',
   },
   buttonBox: {
     flex: 2,
@@ -511,10 +394,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, // Centers vertically
     alignSelf: 'center', // Centers horizontally
-    transform: [{ translateY: '40%' }], // Adjusts for exact centering
+    transform: [{ translateY:'40%'}], // Adjusts for exact centering
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0.5,
     shadowRadius: 5,
   }
