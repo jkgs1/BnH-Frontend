@@ -17,8 +17,8 @@ const apiCall = async () => {
     const matchIDstring = await AsyncStorage.getItem("matchid");
 
     const matchID= Number(matchIDstring);
-    console.log("Vi hämtar matchidet som:", matchID);
 
+    {/* Checks that the token is valid and that the gameId was correctly fetched from AsyncStorage */}
     if(!matchID) {
         console.log("No match found")
         alert("No match found")
@@ -27,24 +27,19 @@ const apiCall = async () => {
     if(!tokenString) {
         console.log("No tokenString")
     }
-    console.log("Match found: ", matchID);
 
     {/* gets match information based on matchID */}
-    // TODO: Den här returnar en array med alla matcher, varför??
     try {
         const response = await Axios({
-            url: `/api/matchup/match/`,
+            url: `/api/matchup/match/${matchID}/`,
             method: "get",
             baseURL: "https://api.bnh.dust.ludd.ltu.se/",
-            params: {id: matchID},
             headers: {
                 "content-type": "application/json",
                 Authorization: `Token ${tokenString}`
             }
         });
-
-        console.log("this is what apiCall returns:", response.data.results);
-        return response.data.results as Matchprops[];
+        return response.data as Matchprops;
     } catch (error: any) {
         console.log("Error in apiCall")
         console.log(error)
@@ -56,6 +51,7 @@ const ThisIsAFunction: React.FC = () => {
     const [homeTeamId, setHomeTeamId] = useState<number | undefined>();
     const [awayTeamId, setAwayTeamId] = useState<number | undefined>();
     const [teams, setTeams] = useState<Team[]>([]);
+    console.log("this is stored in teams: ", teams);
     const [matchID, setMatchID] = useState<number | undefined>();
 
     {/* gets teams id from apiCall() function above */}
@@ -64,10 +60,8 @@ const ThisIsAFunction: React.FC = () => {
             const result = await apiCall();
             if (result) {
                 setHomeTeamId(result.homeTeamId)
-                console.log(result.homeTeamId);
                 setAwayTeamId(result.awayTeamId)
-                console.log(result.awayTeamId);
-                setMatchID(result.matchID)
+                setMatchID(result.id)
             }
         }
         fetchData();
@@ -77,11 +71,13 @@ const ThisIsAFunction: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             if (homeTeamId!==undefined && awayTeamId!==undefined){
-                const result = await getTeamFromId(homeTeamId, awayTeamId);
+                const result = await getTeamsfromApi();
                 if (result) {
                     setTeams(result)
                     console.log("This is from the second hook call:", result)
                 }
+            } else {
+                console.log("WAAAAAAAAW")
             }
         }
         fetchData();
@@ -91,7 +87,6 @@ const ThisIsAFunction: React.FC = () => {
         const team = teams.find((team) => team.id === teamId);
         return team ? team.name : "Team not found";
     };
-    console.log("This is the teams:", teams);
 
     const TeamInputFunc = () => {
         const [homeTeam, onChangeHome] = React.useState(getTeamNameById(teams, homeTeamId));

@@ -31,7 +31,7 @@ export const getTeamsfromApi = async () => {
             baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
             headers: {
                 'content-type': 'application/json',
-                Authorization: `Bearer ${tokenString}`, // Add token to the Authorization header
+                Authorization: `Token ${tokenString}`, // Add token to the Authorization header
             },
         });
         return response.data.results as Team[];
@@ -55,13 +55,12 @@ export const getTeamFromId = async (homeTeamId: number, awayTeamId: number) => {
             url: '/api/clubber/teams/',
             method: 'get',
             baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
-            data: {
-                homeTeam: homeTeamId,
-                awayTeam: awayTeamId,
+            params: {
+                id: homeTeamId,
             },
             headers: {
                 'content-type': 'application/json',
-                Authorization: `Bearer ${tokenString}`, // Add token to the Authorization header
+                Authorization: `Token ${tokenString}`, // Add token to the Authorization header
             },
         });
         return response.data as Team[];
