@@ -45,43 +45,70 @@ const apiCall = async () => {
         console.log(error)
     }
 }
+const getTeams = async (homeTeamId: number, awayTeamId: number) => {
+    try {
+        {/* Fetch all teams and then find the 2 wanted teams */}
+        const allTeams = await getTeamsfromApi();
+        if (!allTeams) {
+            console.error("No teams found");
+            return;
+        }
+        const homeTeam = allTeams.find(team => team.id === homeTeamId);
+        const awayTeam = allTeams.find(team => team.id === awayTeamId);
 
+        // Return the filtered teams
+        return [homeTeam, awayTeam].filter(team => team !== undefined) as Team[];
+    } catch (error) {
+        console.log("Error in getTeamFromId", error);
+        console.log(error);
+    }
+}
 const ThisIsAFunction: React.FC = () => {
 
     const [homeTeamId, setHomeTeamId] = useState<number | undefined>();
     const [awayTeamId, setAwayTeamId] = useState<number | undefined>();
     const [teams, setTeams] = useState<Team[]>([]);
-    console.log("this is stored in teams: ", teams);
+    console.log("the team ids: ", homeTeamId, awayTeamId);
     const [matchID, setMatchID] = useState<number | undefined>();
 
     {/* gets teams id from apiCall() function above */}
     useEffect(() => {
+        console.log("first")
         const fetchData = async () => {
             const result = await apiCall();
             if (result) {
                 setHomeTeamId(result.homeTeamId)
                 setAwayTeamId(result.awayTeamId)
                 setMatchID(result.id)
+                console.log("firsT hhok call:" ,result)
             }
         }
         fetchData();
     },[]);
 
-    {/* gets team information with /getTeamsapi : func getTeamFromId */}
+    {/* gets team information with getTeams */}
     useEffect(() => {
+        console.log("secound")
         const fetchData = async () => {
-            if (homeTeamId!==undefined && awayTeamId!==undefined){
-                const result = await getTeamsfromApi();
-                if (result) {
-                    setTeams(result)
-                    console.log("This is from the second hook call:", result)
+                try{
+                    if (homeTeamId!==undefined && awayTeamId!==undefined) {
+                        const result = await getTeams(homeTeamId, awayTeamId);
+                        if (result !== undefined) {
+                            setTeams(result)
+                            console.log("This is from the second hook call:", result)
+                        }else{
+                            console.log("Fuck")
+                        }
+                    }else{
+                        console.log("doublefuck")
+                    }
+                } catch(error) {
+                    console.log(error);
+                    console.log("WAAAAAAAAAAAAW")
                 }
-            } else {
-                console.log("WAAAAAAAAW")
             }
-        }
         fetchData();
-    },[]);
+    },[homeTeamId, awayTeamId]);
 
     const getTeamNameById = (teams: Team[], teamId: number | undefined): string => {
         const team = teams.find((team) => team.id === teamId);
@@ -90,7 +117,7 @@ const ThisIsAFunction: React.FC = () => {
 
     const TeamInputFunc = () => {
         const [homeTeam, onChangeHome] = React.useState(getTeamNameById(teams, homeTeamId));
-        const [awayTeam, onChangeAway] = React.useState('Bortalag');
+        const [awayTeam, onChangeAway] = React.useState(getTeamNameById(teams, awayTeamId));
 
         return (
             <SafeAreaProvider>
