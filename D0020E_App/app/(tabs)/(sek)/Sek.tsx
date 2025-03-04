@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect,useState, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, TouchableOpacityProps, ScrollView } from 'react-native';
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,23 +13,19 @@ const api = axios.create({
       'Content-Type': 'application/json',
     },
   });
-  
-  
-  const updatePlayerScore = async ( playerId: number, points: number) => {
-    try {
-      //Gets the matchId
-      const matchIDstring = await AsyncStorage.getItem("matchid");
-      const matchId= Number(matchIDstring);
 
-      //Uses MatchId and playerId to upload the updated points to database
-      const response = await api.patch(`/match${matchId}/event/players/${playerId}/score`, { points }); // måste byta url så det blit rätt
-      return response.data;
-    } catch (error) {
-      console.error('Error updating player score:', error);
-      throw error;
-    }
-  };
-  
+//takes matchId, playerId and update the score of the game
+const updatePlayerScore = async (matchId: number, playerId: number, points: number) => {
+  try {
+    const response = await api.patch(`/match/${matchId}/event/players/${playerId}/score`, { points });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating player score:', error);
+    throw error;
+  }
+};
+
+//takes matchId, both playerIds and update the fouls of the game
   const updatePlayerFouls = async (matchId: number,playerId: number, player:number,fouls: number) => {
     try {
       const response = await api.patch(`/${matchId}/event/players/${playerId}/fouls`, { fouls });
@@ -62,15 +58,15 @@ const api = axios.create({
     }
   };
 
-  const fetchPlayerId = async (matchId: number) => {
+  const fetchPlayers = async (matchId: number) => {
     try {
-      const response = await api.get(`/match${matchId}/event/players/`); // måste byta url så det blit rätt
-      return response.data;
+      const response = await api.get(`/match/${matchId}/event/players/`);
+      return response.data; // Returns an array of players
     } catch (error) {
-      console.error('Error updating player score:', error);
+      console.error('Error fetching players:', error);
       throw error;
     }
-  }
+  };
 
 
 // Define TypeScript interfaces for props
@@ -104,8 +100,9 @@ const pointCounter = () => {
   );
 };
 
-const PlayerButtons: React.FC<{ start: number; end: number; openActionView: () => void }> = ({ start, end, openActionView }) => {
-  const players = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+const PlayerButtons: React.FC<{ start: number; end: number; openActionView: (playerId: number) => void }> =
+    ({ start, end, openActionView }) => {
+      const players = Array.from({ length: end - start + 1 }, (_, index) => start + index);
 
   return (
     <>
@@ -119,7 +116,7 @@ const PlayerButtons: React.FC<{ start: number; end: number; openActionView: () =
               <CustomButton
                 title={`P${player}`}
                 onPress={() => {
-                  if (player >= 1 && player <= 4) openActionView();
+                  if (player >= 1 && player <= 4) openActionView(player);
                 }}
                 style={styles.playerButton}
               />
@@ -127,7 +124,7 @@ const PlayerButtons: React.FC<{ start: number; end: number; openActionView: () =
                 <CustomButton
                   title={`P${players[index + 1]}`}
                   onPress={() => {
-                    if (players[index + 1] >= 1 && players[index + 1] <= 4) openActionView();
+                    if (players[index + 1] >= 1 && players[index + 1] <= 4) openActionView(player);
                   }}
                   style={styles.playerButton}
                 />
@@ -142,26 +139,32 @@ const PlayerButtons: React.FC<{ start: number; end: number; openActionView: () =
 };
 
 
-const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void; playerId: number;}> =
-    ({ start, end, closeActionView, playerId }) => {
-  const points = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void; playerId: number; matchId: number }> =
+    ({start, end, closeActionView, playerId, matchId,}) => {
+
+const points = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+
+  const handleScore = async (points: number) => {
+    try {
+      await updatePlayerScore(matchId, playerId, points); // Use matchId and playerId
+      Alert.alert('Success', `${points} points added to Player ${playerId}!`);
+      closeActionView();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update player score.');
+    }
+  };
 
   return (
-    <View >
-      {points.map((point) => (
-        <CustomButton
-          key={point}
-          title={`${point} Poäng`}
-          onPress={
-            async () => {
-              await updatePlayerScore( playerId, point); // matchId bara 1, bör ändras.
-              closeActionView();
-            }
-          }
-          style={styles.pointButton}
-        />
-      ))}
-    </View>
+      <View>
+        {points.map((point) => (
+            <CustomButton
+                key={point}
+                title={`${point} Poäng`}
+                onPress={() => handleScore(point)}
+                style={styles.pointButton}
+            />
+        ))}
+      </View>
   );
 };
 
@@ -232,6 +235,32 @@ const Tab: React.FC = () => {
   const [showActionView, setShowActionView] = useState(false);
   const openActionView = () => setShowActionView(true);
   const closeActionView = () => setShowActionView(false);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
+  const [players, setPlayers] = useState<Array<{ id: number; name: string }>>([]);
+  const [matchId, setMatchId] = useState<number | null>(null);
+
+
+  //Used to load matchId and playerId when component loads in.
+  useEffect(() => {
+    const loadMatchAndPlayers = async () => {
+      try {
+        // Fetch matchId from AsyncStorage
+        const matchIDstring = await AsyncStorage.getItem("matchid");
+        const matchId = Number(matchIDstring);
+        setMatchId(matchId);
+
+        if (matchId) {
+          // Fetch players for the match
+          const playersData = await fetchPlayers(matchId);
+          setPlayers(playersData);
+        }
+      } catch (error) {
+        console.error('Failed to load match or players:', error);
+      }
+    };
+
+    loadMatchAndPlayers(); // Call the async function
+  }, []);
 
 
 
@@ -260,14 +289,20 @@ const Tab: React.FC = () => {
 
 
             {/* First Four Buttons for players on the court */}
-            <PlayerButtons start={1} end={4} openActionView={openActionView} />
+            <PlayerButtons start={1} end={4} openActionView={(playerId) => {
+              setSelectedPlayerId(playerId);
+              openActionView();
+            }} />
 
             {/* Middle Single Button, player on court */}
             <View style={styles.playerBoxButton}>
               <CustomButton
-                title="P5"
-                onPress={() => openActionView()}
-                style={styles.playerButton}
+                  title="P5"
+                  onPress={() => {
+                    setSelectedPlayerId(5);  // Set player ID to 5
+                    openActionView();
+                  }}
+                  style={styles.playerButton}
               />
             </View>
 
@@ -323,51 +358,56 @@ const Tab: React.FC = () => {
             </View>
           </View>
         </View>
-        {showActionView &&
-          <ActionView closeActionView={closeActionView} playerId={}/>
-        }
+          {showActionView && matchId && selectedPlayerId &&
+              <ActionView
+                  closeActionView={closeActionView}
+                  playerId={selectedPlayerId}
+                  matchId={matchId}
+              />
+          }
       </View>
     </ScrollView>
   );
 };
 
 
-const ActionView: React.FC<{ closeActionView: () => void; playerId: number;  }> = ({ closeActionView, playerId,   }) => {
-  const [show, setShow] = useState(false);
-  const toggleShow = () => setShow(!show);
+const ActionView: React.FC<{ closeActionView: () => void; playerId: number; matchId: number }> =
+    ({closeActionView, playerId, matchId,}) => {
 
+  {/*
   const handleFoul = async () => {
     try {
-      //await updatePlayerFouls(playerId, playerId, 1); // Add 1 foul to the player
-      closeActionView();                    // Close the action view
+      await updatePlayerFouls(matchId, playerId, 1); // Use matchId and playerId
+      Alert.alert('Success', `Foul added to Player ${playerId}!`);
+      closeActionView();
     } catch (error) {
       Alert.alert('Error', 'Failed to update player fouls.');
     }
   };
-
+      */}
 
   return (
-    <View style={styles.actionWindowView}>
-      <TouchableOpacity onPress={closeActionView} style={styles.closeButton}>
-        <Text style={styles.closeButtonText}>X</Text>
-      </TouchableOpacity>
+      <View style={styles.actionWindowView}>
+        <TouchableOpacity onPress={closeActionView} style={styles.closeButton}>
+          <Text style={styles.closeButtonText}>X</Text>
+        </TouchableOpacity>
 
-      {/*Knapp för poäng 1-3 */}
-      <View >
-        <PointButtons start={1} end={3} closeActionView={closeActionView} playerId={playerId}  />
+        {/* Point Buttons */}
+        <View>
+          <PointButtons start={1} end={3} closeActionView={closeActionView} playerId={playerId} matchId={matchId} />
+        </View>
+
+        {/* Foul Button */}
+        <View style={styles.foulButton}>
+          <CustomButton
+              title={'FOUL'}
+             // onPress={handleFoul}
+              style={styles.pointButton}
+          />
+        </View>
       </View>
-
-      {/*Knapp för fouls. behöver ID för två spelare */}
-      <View style={styles.foulButton}>
-        <CustomButton
-          title={'FOUL'}
-          onPress={handleFoul}
-          style={styles.pointButton} />
-      </View>
-
-    </View>
-  )
-}
+  );
+};
 
 
 //https://stackoverflow.com/questions/68494075/how-can-i-make-a-button-change-what-components-are-showing-in-react-native
