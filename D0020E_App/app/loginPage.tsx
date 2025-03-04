@@ -55,6 +55,7 @@ export default function loginpage() {
       console.log("Login ok:", tokenToString)
       await AsyncStorage.setItem("userToken", tokenToString);
       console.log("Token saved")
+      router.push("/");
       
 
     } catch(error){
@@ -114,7 +115,7 @@ export default function loginpage() {
 
             <TouchableOpacity
               style={styles.button}
-              // onPress={()=> nav.navigate()}
+              onPress={()=>router.push("/signup")}
               disabled={!isValid}
             >
               <Text style={styles.buttonText}>Sign Up</Text>
@@ -127,6 +128,7 @@ export default function loginpage() {
             >
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
+
           </>
 
         )
@@ -174,6 +176,10 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  buttonTextSignUp:{
+    color:"#1E90FF",
+    fontSize:18,
   },
   button: {
     width: '50%',
