@@ -85,7 +85,7 @@ const changeTeamName = async (teamId: number, newName: string): Promise<Team | n
     try {
         const response = await Axios({
             url: `/api/clubber/teams/${teamId}/`,
-            method: 'put',
+            method: 'patch',
             baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
             headers: {
                 'content-type': 'application/json',
@@ -98,6 +98,33 @@ const changeTeamName = async (teamId: number, newName: string): Promise<Team | n
         return response.data as Team;
     } catch (error) {
         console.error("Error in changeTeamName", error);
+        return null;
+    }
+};
+
+const changeTeamDesc = async (teamId: number, newDesc: string): Promise<Team | null> => {
+    const tokenString = await AsyncStorage.getItem('userToken');
+    if (!tokenString) {
+        console.error('No token found');
+        alert('No token found');
+        return null;
+    }
+    try {
+        const response = await Axios({
+            url: `/api/clubber/teams/${teamId}/`,
+            method: 'patch',
+            baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+            headers: {
+                'content-type': 'application/json',
+                Authorization: `Token ${tokenString}`,
+            },
+            data: {
+                description: newDesc,
+            }
+        });
+        return response.data as Team;
+    } catch (error) {
+        console.error("Error in changeTeamDesc");
         return null;
     }
 };
@@ -153,6 +180,7 @@ export default function TeamDetails() {
     const [team, setTeam] = useState<Team | null>(null);
     const [players, setPlayers] = useState<Player[]>([]);
     const [newTeamName, setNewTeamName] = useState("");
+    const [newTeamDescription, setNewTeamDescription] = useState("");
     const [newPlayerFirstName, setNewPlayerFirstName] = useState("");
     const [newPlayerSurName, setNewPlayerSurName] = useState("");
     const newPlayerDesc = "";
@@ -228,6 +256,23 @@ export default function TeamDetails() {
             Alert.alert("Det blev något fel");
         }
     };
+    const handleUpdateTeamDescription = async () => {
+        if (!newTeamDescription.trim()) {
+            Alert.alert("Du måste ange en giltlig beskrivning");
+            return;
+        }
+        const success = await changeTeamDesc(Number(teamId), newTeamDescription);
+        if (success) {
+            Alert.alert("Ny lagbeskrivning sparat!");
+            // Refresh the team data
+            const teamData = await getTeamFromApi(Number(teamId));
+            if (teamData) {
+                setTeam(teamData);
+            }
+        } else {
+            Alert.alert("Det blev något fel");
+        }
+    };
 
     return (
         <ScrollView style={styles.container}>
@@ -261,6 +306,7 @@ export default function TeamDetails() {
                     placeholder="Enter new team name"
                     value={newTeamName}
                     onChangeText={setNewTeamName}
+                    spellCheck={false}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleUpdateTeamName}>
                     <Text style={styles.buttonText}>Update Team Name</Text>
@@ -269,15 +315,29 @@ export default function TeamDetails() {
             <View style={styles.teamSettings}>
                 <TextInput
                     style={styles.input}
+                    placeholder="Enter a description"
+                    value={newTeamDescription}
+                    onChangeText={setNewTeamDescription}
+                    spellCheck={false}
+                />
+                <TouchableOpacity style={styles.button} onPress={handleUpdateTeamDescription}>
+                    <Text style={styles.buttonText}>Update Team Description</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.teamSettings}>
+                <TextInput
+                    style={styles.input}
                     placeholder="Firstname"
                     value={newPlayerFirstName}
                     onChangeText={setNewPlayerFirstName}
+                    spellCheck={false}
                 />
                 <TextInput
                     style={styles.input}
                     placeholder="Surname"
                     value={newPlayerSurName}
                     onChangeText={setNewPlayerSurName}
+                    spellCheck={false}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleAddPlayer}>
                     <Text style={styles.buttonText}>Add player</Text>
@@ -294,7 +354,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f5f5f5",
     },
     teamSettings: {
-      marginTop: 40,
+      marginTop: 20,
       flexDirection: "row",
       alignItems: "flex-start",
       gap: 4
