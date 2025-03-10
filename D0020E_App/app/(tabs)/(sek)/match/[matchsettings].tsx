@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     TouchableOpacityProps,
     Modal,
-    FlatList, GestureResponderEvent
+    FlatList, GestureResponderEvent, ScrollView
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import React, {useEffect, useState} from 'react';
@@ -214,7 +214,7 @@ const ThisIsAFunction: React.FC = () => {
                 <View style={{width:"100%"}}>
                     <TouchableOpacity style={styles.button} onPress={()=> setModalVisibleHome(true)}>
                         <View style={styles.teamOptions}>
-                            <Text style={styles.buttonText}>Välj Spelare</Text>
+                            <Text style={styles.buttonText}>Visa Spelare</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -224,6 +224,7 @@ const ThisIsAFunction: React.FC = () => {
                     animationType="slide"
                     onRequestClose={()=> setModalVisibleHome(false)}
                 >
+                    <ScrollView>
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <FlatList
@@ -240,6 +241,7 @@ const ThisIsAFunction: React.FC = () => {
                             />
                         </View>
                     </View>
+                    </ScrollView>
 
                 </Modal>
             </View>
@@ -354,6 +356,8 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 10,
         padding: 20,
+        marginBottom: 40,
+        marginTop:40,
     },
     playerItem: {
         padding: 15,
