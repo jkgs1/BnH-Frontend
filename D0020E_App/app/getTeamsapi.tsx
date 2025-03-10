@@ -36,7 +36,7 @@ export const getTeamsfromApi = async () => {
         });
         return response.data.results as Team[];
     } catch (error) {
-        console.log("Error in getTeamsfromApi", error);
+        console.log("Error in getTeamsfromApi");
         console.log(error);
     }
 }

@@ -23,8 +23,12 @@ interface Matchprops {
 interface Player {
     bio: string;
     givenName: string;
-    id: string;
+    id: number;
     surname: string;
+}
+interface PickPlayersProps {
+    players: Player[];
+    teamName: string;
 }
 
 const apiCall = async () => {
@@ -80,7 +84,7 @@ const getTeams = async (homeTeamId: number, awayTeamId: number) => {
     }
 }
 
-const getPlayersFromApi = async () => {
+const getPlayersFromApi = async (playerIds: number[]) => {
     const tokenString = await AsyncStorage.getItem('userToken');
     if (!tokenString) {
         console.error('No token found');
@@ -90,7 +94,7 @@ const getPlayersFromApi = async () => {
     }
     try {
         const response = await Axios({
-            url: '/api/clubber/players/',
+            url: `/api/clubber/players/`,
             method: 'get',
             baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
             headers: {
@@ -98,20 +102,47 @@ const getPlayersFromApi = async () => {
                 Authorization: `Token ${tokenString}`, // Add token to the Authorization header
             },
         });
-        return response.data.results as Player[];
+        const players = response.data.results.filter((player: Player) =>
+            playerIds.includes(player.id)
+        );
+        return players;
     } catch (error) {
         console.log("Error in getPlayersFromApi", error);
         console.log(error);
     }
 }
+const getTeamFromApi = async (teamId: number): Promise<Team | null> => {
+    const tokenString = await AsyncStorage.getItem('userToken');
+    if (!tokenString) {
+        console.error('No token found');
+        alert('No token found');
+        return null;
+    }
+    try {
+        const response = await Axios({
+            url: `/api/clubber/teams/${teamId}/`,
+            method: 'get',
+            baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+            headers: {
+                'content-type': 'application/json',
+                Authorization: `Token ${tokenString}`,
+            },
+        });
+        return response.data as Team;
+    } catch (error) {
+        console.error("Error in getTeamFromApi");
+        return null;
+    }
+};
 
 const ThisIsAFunction: React.FC = () => {
 
     const [homeTeamId, setHomeTeamId] = useState<number | undefined>();
     const [awayTeamId, setAwayTeamId] = useState<number | undefined>();
-    const [teams, setTeams] = useState<Team[]>([]);
     const [matchID, setMatchID] = useState<number | undefined>();
-    const [players, setPlayers] = useState<Player[]>([]);
+    const [homeplayers, sethomePlayers] = useState<Player[]>([]);
+    const [awayplayers, setawayPlayers] = useState<Player[]>([]);
+    const [teamInfo, setteamInfo] = useState<Team[]>([]);
 
     {/* gets teams id from apiCall() function above */}
     useEffect(() => {
@@ -133,39 +164,43 @@ const ThisIsAFunction: React.FC = () => {
                     if (homeTeamId!==undefined && awayTeamId!==undefined) {
                         const result = await getTeams(homeTeamId, awayTeamId);
                         if (result !== undefined) {
-                            setTeams(result)
+                            setteamInfo(result)
                         }
                     }
                 } catch(error) {
                     console.log(error);
-
                 }
             }
         fetchData();
     },[homeTeamId, awayTeamId]);
 
     {/* Get players */}
-    useEffect(() => {
-        console.log("third")
-        const fetchData = async () => {
-            const result = await getPlayersFromApi();
-            if (result) {
-                setPlayers(result)
-                console.log("triplefuck:", result)
-            }
-        }
-        fetchData();
-    },[]);
 
-    const getTeamNameById = (teams: Team[], teamId: number | undefined): string => {
-        const team = teams.find((team) => team.id === teamId);
+    useEffect(() => {
+        const fetchTeamAndPlayers = async () => {
+            const teamhomeData = await getTeamFromApi(Number(homeTeamId));
+            const teamawayData = await getTeamFromApi(Number(awayTeamId));
+            if (teamhomeData && teamawayData) {
+                // Fetch player details for the player IDs in the team
+                const playerhomeDetails = await getPlayersFromApi(teamhomeData.players);
+                const playerawayDetails = await getPlayersFromApi(teamawayData.players);
+                sethomePlayers(playerhomeDetails);
+                setawayPlayers(playerawayDetails);
+            }
+        };
+
+        fetchTeamAndPlayers();
+    }, [homeTeamId]);
+
+    const getTeamNameById = (teamInfo: Team[], teamId: number | undefined): string => {
+        const team = teamInfo.find((team) => team.id === teamId);
         return team ? team.name : "Team not found";
     };
 
     {/* This is used so that a user can change the team names */}
     const TeamInputFunc = () => {
-        const [homeTeam, onChangeHome] = React.useState(getTeamNameById(teams, homeTeamId));
-        const [awayTeam, onChangeAway] = React.useState(getTeamNameById(teams, awayTeamId));
+        const [homeTeam, onChangeHome] = React.useState(getTeamNameById(teamInfo, homeTeamId));
+        const [awayTeam, onChangeAway] = React.useState(getTeamNameById(teamInfo, awayTeamId));
 
         return (
             <SafeAreaProvider>
@@ -194,17 +229,14 @@ const ThisIsAFunction: React.FC = () => {
         );
     };
 
-    const PickPlayers : React.FC = () => {
+    const PickPlayers : React.FC<PickPlayersProps> = ({players, teamName}) => {
         {/* used for hiding and showing modal component when returning page */}
         const [modalVisibleHome, setModalVisibleHome] = useState(false);
-        const [modalVisibleAway, setModalVisibleAway] = useState(false);
 
         {/* sets the types for values when picking players */}
         const handlePlayerSelection = (
             playerId: number,
-            //setPlayerId: React.Dispatch<React.SetStateAction<number | null>>,
             setModalVisible: React.Dispatch<React.SetStateAction<boolean>>) => {
-            //setPlayerId(playerId);
             setModalVisible(false);
             console.log("Player selected: ", playerId);
         };
@@ -223,25 +255,26 @@ const ThisIsAFunction: React.FC = () => {
                     visible={modalVisibleHome}
                     animationType="slide"
                     onRequestClose={()=> setModalVisibleHome(false)}
+                    presentationStyle="fullScreen"
                 >
-                    <ScrollView>
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <FlatList
-                                data={players}
-                                keyExtractor={(item) => item.id.toString()}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                    style={styles.playerItem}
-                                    onPress={()=>handlePlayerSelection(+item.id, setModalVisibleHome)}
-                                    >
-                                        <Text style={styles.playerItemText}>{item.givenName}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            />
+                    <View style={{height:"100%"}}>
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                <FlatList
+                                    data={players}
+                                    keyExtractor={(item) => item.id.toString()}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                        style={styles.playerItem}
+                                        onPress={()=>handlePlayerSelection(+item.id, setModalVisibleHome)}
+                                        >
+                                            <Text style={styles.playerItemText}>{item.givenName}</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            </View>
                         </View>
                     </View>
-                    </ScrollView>
 
                 </Modal>
             </View>
@@ -249,10 +282,6 @@ const ThisIsAFunction: React.FC = () => {
         )
     };
 
-    const PickStab : React.FC = () => {
-        const [modalVisibleHome, setModalVisibleHome] = useState(false);
-
-    };
 
     return (
         <View style={styles.container}>
@@ -273,12 +302,12 @@ const ThisIsAFunction: React.FC = () => {
 
             <View style={{ alignItems: "flex-start",flexDirection:"row" }}>
                 <View style={styles.teamOptionsHome}>
-                    <PickPlayers />
+                    <PickPlayers players={homeplayers} teamName={"Hemmalag"}/>
                     <CustomButton title="Välj ledarstab" />
                     <CustomButton title="Lagfärg" />
                 </View>
                 <View style={styles.teamOptionsAway}>
-                    <PickPlayers />
+                    <PickPlayers players={awayplayers} teamName={"Bortalag"}/>
                     <CustomButton title="Välj ledarstab" />
                     <CustomButton title="Lagfärg" />
                 </View>
@@ -349,7 +378,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "rgba(0,0,0,0.5)",
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        height: "100%",
     },
     modalContent: {
         width: "80%",
