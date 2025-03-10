@@ -11,7 +11,15 @@ interface Team {
     logo: string | null;
     description: string;
     club: string | null;
-    players: [];
+    players: TeamPlayer[];
+}
+
+interface TeamPlayer {
+    id: number;
+    number: number,
+    team: number,
+    player: number,
+    shirt: number|null,
 }
 
 interface Player {
@@ -32,20 +40,21 @@ const getPlayersFromApi = async (playerIds: number[]) => {
         router.push('/loginPage');
         return;
     }
+    let playerlist: Player[] = [];
     try {
-        const response = await Axios({
-            url: `/api/clubber/players/`,
-            method: 'get',
-            baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
-            headers: {
-                'content-type': 'application/json',
-                Authorization: `Token ${tokenString}`, // Add token to the Authorization header
-            },
-        });
-        const players = response.data.results.filter((player: Player) =>
-            playerIds.includes(player.id)
-        );
-        return players;
+        for (const i in playerIds) {
+            const response = await Axios({
+                url: `/api/clubber/players/${playerIds[i]}/`,
+                method: 'get',
+                baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+                headers: {
+                    'content-type': 'application/json',
+                    Authorization: `Token ${tokenString}`, // Add token to the Authorization header
+                },
+            });
+            playerlist.push(response.data);
+        }
+        return playerlist;
     } catch (error) {
         console.log("Error in getPlayersFromApi", error);
         console.log(error);
@@ -153,7 +162,7 @@ const addPlayerToTeam = async (teamId: number, team: Team | null , playerData: {
         {/* Add the new player ID to the team */}
         if (team!=null){
             const teamResponse = await Axios({
-                url: `/api/clubber/teams/${teamId}/team_player`,
+                url: `/api/clubber/teams/${teamId}/players/`,
                 method: 'post',
                 baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
                 headers: {
@@ -161,7 +170,8 @@ const addPlayerToTeam = async (teamId: number, team: Team | null , playerData: {
                     Authorization: `Token ${tokenString}`,
                 },
                 data: {
-                    players: response.data.id,
+                    player: response.data.id,
+                    team: teamId,
                 },
             });
             console.log("teamResponse", teamResponse);
@@ -193,8 +203,12 @@ export default function TeamDetails() {
                 setTeam(teamData);
 
                 // Fetch player details for the player IDs in the team
-                const playerDetails = await getPlayersFromApi(teamData.players);
-                setPlayers(playerDetails);
+                console.log(teamData);
+                console.log(teamData.players.map((p) => p.player));
+                const playerDetails = await getPlayersFromApi(teamData.players.map((p) => p.player));
+                if(playerDetails!=undefined){
+                    setPlayers(playerDetails);
+                }
             }
         };
 
@@ -220,9 +234,10 @@ export default function TeamDetails() {
             const teamData = await getTeamFromApi(Number(teamId));
             if (teamData) {
                 setTeam(teamData);
-                const playerDetails = await getPlayersFromApi(teamData.players);
-                setPlayers(playerDetails);
-            }
+                const playerDetails = await getPlayersFromApi(teamData.players.map((p) => p.player));
+                if(playerDetails!=undefined) {
+                    setPlayers(playerDetails);
+                }            }
             // Clear the form
             setNewPlayerFirstName('');
             setNewPlayerSurName('');

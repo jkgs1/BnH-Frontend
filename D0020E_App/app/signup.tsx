@@ -20,6 +20,7 @@ const loginSchema = yup.object().shape({
         .required('Ange ett lösenord'),
     confirmPassword: yup
         .string()
+        .oneOf([yup.ref('passwd')])
         .required("Vänligen bekräfta lösenord")
 
 })
@@ -34,27 +35,37 @@ interface LoginValues {
     email: string;
     username: string;
     passwd: string;
-    confirmPassword: string;
+
 }
+
 export default function Signup() {
     const handlSubmit = async (values: LoginValues) => {
         console.log("Signup:", values)
-        try {
-            {/* TODO: Add actuall api */}
-            const response = await axios.post("https://api.bnh.dust.ludd.ltu.se/api/users/",
-                {
-                    email: values.email,
-                    username: values.username,
-                    password: values.passwd,
-                    confirmPassword: values.confirmPassword
-                },
+        try{
+            const responseToken = await axios.post("https://api.bnh.dust.ludd.ltu.se/api/auth/",
+                {},
                 {
                     headers: {
                         "content-type": "application/json",
                     }
                 }
-
             );
+            const tempToken = responseToken.data.token;
+
+            const response = await axios({
+                url: `/api/users/`,
+                method: "post",
+                baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+                headers: {
+                    "content-type": "application/json",
+                     Authorization: `Token ${tempToken}`
+                },
+                data: {
+                    email: values.email,
+                    username: values.username,
+                    password: values.passwd,
+                }
+            });
 
 
             const tokenToString = response.data.token;
@@ -144,6 +155,8 @@ export default function Signup() {
                         {errors.confirmPassword && touched.confirmPassword && (
                             <Text style={styles.errorText}>{errors.confirmPassword}</Text>
                         )}
+
+
 
                         <TouchableOpacity
                             style={styles.button}
