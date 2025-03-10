@@ -2,22 +2,108 @@ import React, { useEffect,useState, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, TouchableOpacityProps, ScrollView } from 'react-native';
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {router} from "expo-router";
+import Axios from "axios";
 
 const baseURL = "https://api.bnh.dust.ludd.ltu.se/api/matchup";
+interface Team{
+  Players: []
+}
 
-//  "https://api.bnh.dust.ludd.ltu.se/api/matchup/match/event";
+interface Matchprops {
+  id: number;
+  homeTeamId: number;
+  awayTeamId: number;
+}
+
+const apiCall = async () => {
+  const tokenString = await AsyncStorage.getItem("userToken");
+  const matchIDstring = await AsyncStorage.getItem("matchid");
+
+  const matchID= Number(matchIDstring);
+
+  {/* Checks that the token is valid and that the gameId was correctly fetched from AsyncStorage */}
+  if(!matchID) {
+    console.log("No match found")
+    alert("No match found")
+    return;
+  }
+  if(!tokenString) {
+    console.log("No tokenString")
+  }
+
+  {/* gets match information based on matchID */}
+  try {
+    const response = await Axios({
+      url: `/api/matchup/match/${matchID}/`,
+      method: "get",
+      baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Token ${tokenString}`
+      }
+    });
+    return response.data as Matchprops;
+  } catch (error: any) {
+    console.log("Error in apiCall")
+    console.log(error)
+  }
+}
+
+const getPlayersFromApi = async (TeamId: number) => {
+  const tokenString = await AsyncStorage.getItem('userToken');
+  if (!tokenString) {
+    console.error('No token found');
+    alert('No token found');
+    router.push('/loginPage');
+    return;
+  }
+  try {
+    const response = await Axios({
+      url: `/api/clubber/teams/${TeamId}/`,
+      method: 'get',
+      baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+      headers: {
+        'content-type': 'application/json',
+        Authorization: `Token ${tokenString}`, // Add token to the Authorization header
+      },
+    });
+    console.log("jkl"+response.data.players);
+    return response.data.players as Team[];
+  } catch (error) {
+    console.log("Error in getPlayersFromApi", error);
+    console.log(error);
+  }
+}
 
 const api = axios.create({
+
     baseURL: baseURL,
     headers: {
       'Content-Type': 'application/json',
+
     },
   });
 
-//takes matchId, playerId and update the score of the game
+//takes matchId, playerId and update the score of the game && Need to send payerId correctly
 const updatePlayerScore = async (matchId: number, playerId: number, points: number) => {
+  let eventPoints= points.toString()+"P";
+  const tokenString = await AsyncStorage.getItem('userToken');
+
   try {
-    const response = await api.patch(`/match/${matchId}/event/players/${playerId}/score`, { points });
+    const response = await axios.post(`https://api.bnh.dust.ludd.ltu.se/api/matchup/match/${matchId}/events/`, {
+      match: matchId,
+      player1: playerId,
+      player2: playerId, //Events require two players but only one player can score, so send same player twice
+      time:23,
+      event_type: eventPoints//this need to be a string in the form "#P"
+      }, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Token ${tokenString}`
+        }
+      }
+    )
     return response.data;
   } catch (error) {
     console.error('Error updating player score:', error);
@@ -26,15 +112,30 @@ const updatePlayerScore = async (matchId: number, playerId: number, points: numb
 };
 
 //takes matchId, both playerIds and update the fouls of the game
-  const updatePlayerFouls = async (matchId: number,playerId: number, player:number,fouls: number) => {
+  const updatePlayerFouls = async (matchId: number, OPlayerId: number, VPlayerId:number, fouls: string) => {
+    const tokenString = await AsyncStorage.getItem('userToken');
+
     try {
-      const response = await api.patch(`/${matchId}/event/players/${playerId}/fouls`, { fouls });
+      const response = await axios.post(`https://api.bnh.dust.ludd.ltu.se/api/matchup/match/${matchId}/events/`, {
+            match: matchId,
+            player1: OPlayerId, //Offender
+            player2: VPlayerId, //Victim
+            time:23,
+            event_type: fouls //Has two types of fouls ("FP", "Personal foul") & ("FO", "Other foul")
+          }, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Token ${tokenString}`
+            }
+          }
+      )
       return response.data;
     } catch (error) {
-      console.error('Error updating player fouls:', error);
+      console.error('Error updating player score:', error);
       throw error;
     }
   };
+
   {/*
   export const updatePlayerOnCourt = async (matchId: number,playerId: number, playerId:number) => {
     try {
@@ -58,7 +159,8 @@ const updatePlayerScore = async (matchId: number, playerId: number, points: numb
     }
   };
 
-  const fetchPlayers = async (matchId: number) => {
+  /*
+  * const fetchPlayers = async (matchId: number) => {
     try {
       const response = await api.get(`/match/${matchId}/event/players/`);
       return response.data; // Returns an array of players
@@ -67,6 +169,7 @@ const updatePlayerScore = async (matchId: number, playerId: number, points: numb
       throw error;
     }
   };
+  * */
 
 
 // Define TypeScript interfaces for props
@@ -238,8 +341,38 @@ const Tab: React.FC = () => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
   const [players, setPlayers] = useState<Array<{ id: number; name: string }>>([]);
   const [matchId, setMatchId] = useState<number | null>(null);
+  const [homeTeamId, setHomeTeamId] = useState<number | undefined>();
+  const [awayTeamId, setAwayTeamId] = useState<number | undefined>();
+  const [playerArray, setPlayersArray] = useState<Team[]>([]);
+  console.log("players", playerArray);
 
+  {/* gets teams id from apiCall() function above */}
+  useEffect(() => {
+    console.log("first")
+    const fetchData = async () => {
+      const result = await apiCall();
+      if (result) {
+        setHomeTeamId(result.homeTeamId)
+        setAwayTeamId(result.awayTeamId)
+        console.log("firsT hhok call:" ,result)
+      }
+    }
+    fetchData();
+  },[]);
 
+  useEffect(() => {
+    console.log("third")
+    const fetchData = async () => {
+      if (homeTeamId !== undefined) {
+        const result = await getPlayersFromApi(homeTeamId);
+        if (result) {
+          setPlayersArray(result)
+          console.log("triplefuck:", result)
+        }
+      }
+    }
+    fetchData();
+  },[homeTeamId]);
   //Used to load matchId and playerId when component loads in.
   useEffect(() => {
     const loadMatchAndPlayers = async () => {
@@ -249,11 +382,7 @@ const Tab: React.FC = () => {
         const matchId = Number(matchIDstring);
         setMatchId(matchId);
 
-        if (matchId) {
-          // Fetch players for the match
-          const playersData = await fetchPlayers(matchId);
-          setPlayers(playersData);
-        }
+
       } catch (error) {
         console.error('Failed to load match or players:', error);
       }
