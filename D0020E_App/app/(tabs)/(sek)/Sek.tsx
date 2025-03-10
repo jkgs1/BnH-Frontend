@@ -86,20 +86,22 @@ const api = axios.create({
   });
 
 //takes matchId, playerId and update the score of the game && Need to send payerId correctly
-const updatePlayerScore = async (matchId: number, playerId: number, points: number) => {
+const updatePlayerScore = async (matchId: number, playerId: number, points: number, playerArray: Array<Team> ) => {
   let eventPoints= points.toString()+"P";
   const tokenString = await AsyncStorage.getItem('userToken');
-
+  console.log("Enterd updatePlayerScore and this is player ID:",(playerArray[playerId-1]))
+  console.log("What type is the player iD",typeof (playerArray[playerId-1]));
   try {
+
     const response = await axios.post(`https://api.bnh.dust.ludd.ltu.se/api/matchup/match/${matchId}/events/`, {
       match: matchId,
-      player1: playerId,
-      player2: playerId, //Events require two players but only one player can score, so send same player twice
+      player1: (playerArray[playerId-1]),
+      player2: (playerArray[playerId-1]), //Events require two players but only one player can score, so send same player twice
       time:23,
       event_type: eventPoints//this need to be a string in the form "#P"
       }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
           Authorization: `Token ${tokenString}`
         }
       }
@@ -124,7 +126,7 @@ const updatePlayerScore = async (matchId: number, playerId: number, points: numb
             event_type: fouls //Has two types of fouls ("FP", "Personal foul") & ("FO", "Other foul")
           }, {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              'Content-Type': 'application/json',
               Authorization: `Token ${tokenString}`
             }
           }
@@ -242,17 +244,20 @@ const PlayerButtons: React.FC<{ start: number; end: number; openActionView: (pla
 };
 
 
-const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void; playerId: number; matchId: number }> =
-    ({start, end, closeActionView, playerId, matchId,}) => {
+const PointButtons: React.FC<{ start: number; end: number; closeActionView: () => void; playerId: number; matchId: number; playerArray: Array<Team>; }> =
+    ({start, end, closeActionView, playerId, matchId,playerArray}) => {
 
 const points = Array.from({ length: end - start + 1 }, (_, index) => start + index);
 
   const handleScore = async (points: number) => {
     try {
-      await updatePlayerScore(matchId, playerId, points); // Use matchId and playerId
+      console.log('In pointbutton waiting to update score', points);
+      console.log("Players in PointButtons:", playerArray);
+      await updatePlayerScore(matchId, playerId, points,playerArray); // Use matchId and playerId
       Alert.alert('Success', `${points} points added to Player ${playerId}!`);
       closeActionView();
     } catch (error) {
+      console.log("Something went wrong in try, went to catch", error);
       Alert.alert('Error', 'Failed to update player score.');
     }
   };
@@ -360,6 +365,7 @@ const Tab: React.FC = () => {
     fetchData();
   },[]);
 
+  //Gets teamId and loads in players to array
   useEffect(() => {
     console.log("third")
     const fetchData = async () => {
@@ -492,6 +498,7 @@ const Tab: React.FC = () => {
                   closeActionView={closeActionView}
                   playerId={selectedPlayerId}
                   matchId={matchId}
+                  playerArray={playerArray}
               />
           }
       </View>
@@ -500,13 +507,13 @@ const Tab: React.FC = () => {
 };
 
 
-const ActionView: React.FC<{ closeActionView: () => void; playerId: number; matchId: number }> =
-    ({closeActionView, playerId, matchId,}) => {
-
+const ActionView: React.FC<{ closeActionView: () => void; playerId: number; matchId: number; playerArray: Array<Team>; }> =
+    ({closeActionView, playerId, matchId,playerArray}) => {
+      console.log("In actionview going to pointButton")
   {/*
   const handleFoul = async () => {
     try {
-      await updatePlayerFouls(matchId, playerId, 1); // Use matchId and playerId
+      await updatePlayerFouls(matchId, OPlayerId, VPlayerId, fouls);
       Alert.alert('Success', `Foul added to Player ${playerId}!`);
       closeActionView();
     } catch (error) {
@@ -516,21 +523,32 @@ const ActionView: React.FC<{ closeActionView: () => void; playerId: number; matc
       */}
 
   return (
+
       <View style={styles.actionWindowView}>
         <TouchableOpacity onPress={closeActionView} style={styles.closeButton}>
           <Text style={styles.closeButtonText}>X</Text>
         </TouchableOpacity>
 
         {/* Point Buttons */}
+
         <View>
-          <PointButtons start={1} end={3} closeActionView={closeActionView} playerId={playerId} matchId={matchId} />
+          <PointButtons start={1} end={3} closeActionView={closeActionView} playerId={playerId} matchId={matchId} playerArray={playerArray} />
         </View>
 
-        {/* Foul Button */}
+        {/* Foul Buttons */}
         <View style={styles.foulButton}>
           <CustomButton
-              title={'FOUL'}
+              key={"FP"}
+              title={'Personal ' +
+                  'FOUL'}
              // onPress={handleFoul}
+              style={styles.pointButton}
+          />
+          <CustomButton
+              key={"FO"}
+              title={'Other ' +
+                  'FOUL'}
+              // onPress={handleFoul}
               style={styles.pointButton}
           />
         </View>
@@ -663,7 +681,7 @@ const styles = StyleSheet.create({
   },
   foulButton: {
     alignSelf: 'center',
-    width: '33%',
+    width: '40%',
   },
   buttonBox: {
     flex: 2,
