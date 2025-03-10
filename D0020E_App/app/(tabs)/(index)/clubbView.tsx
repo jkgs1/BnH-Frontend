@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView} from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Axios from 'axios';
@@ -37,7 +37,7 @@ const Tab: React.FC = () => {
       <View style={styles.container}>
         <View style={styles.mainBox}>
           <View style={styles.titleBox}>
-            <Text style={styles.titleText}>Club Name</Text>
+            <Text style={styles.titleText}>John Kågström</Text>
 
           </View>
           <View style={styles.teamList}>
@@ -59,14 +59,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "gray"
+
   },
   mainBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: "black",
-    borderWidth: 2,
+
 
     width: "70%",
     height: "70%",
@@ -78,26 +77,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 4,
     width: "100%",
-    height: "30%",
-    backgroundColor: "white"
+    height: "20%",
+
   },
   teamList: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'red',
+    backgroundColor: 'white',
     paddingBottom: 2,
     width: '100%',
     height: 'auto',
-    borderWidth: 2,
-    borderColor: 'black',
+
     flexDirection: 'column',
+    gap:2
   },
   teamBox:{
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "red",
+    backgroundColor: "white",
     paddingBottom: 2,
     width: "100%",
     height: "auto",

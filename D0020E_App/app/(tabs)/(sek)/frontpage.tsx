@@ -50,7 +50,7 @@ const TeamGetter: React.FC = () => {
             >
                 <Text style={styles.teamButtonText}>
                     {homeTeamId ? `Team 1: ${teams.find(teams =>
-                        teams.id == homeTeamId)?.name}` : 'Select Team 1'}
+                        teams.id == homeTeamId)?.name}` : 'Välj Hemmalag'}
                 </Text>
             </TouchableOpacity>
 
@@ -61,7 +61,7 @@ const TeamGetter: React.FC = () => {
             >
                 <Text style={styles.teamButtonText}>
                     {awayTeamId ? `Team 2: ${teams.find(team =>
-                        team.id === awayTeamId)?.name}` : 'Select Team 2'}
+                        team.id === awayTeamId)?.name}` : 'Välj Bortalag'}
                 </Text>
             </TouchableOpacity>
 
@@ -120,7 +120,7 @@ const TeamGetter: React.FC = () => {
                         apiCall(router, homeTeamId, awayTeamId)
                     }}}
             >
-                <Text style={styles.titleText}>Press here to generate new match</Text>
+                <Text style={styles.titleText}>Generera ny match</Text>
             </TouchableOpacity>
         </View>
     );

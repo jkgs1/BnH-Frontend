@@ -89,7 +89,7 @@ export default function loginpage() {
           <>
             <View style={styles.inputContainer}>
               <TextInput style={styles.input}
-                placeholder="E-post"
+                placeholder="Användarnamn"
                 keyboardType="email-address"
                 onChangeText={handleChange('email')}
                 onBlur={handleBlur('email')}

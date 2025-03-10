@@ -41,7 +41,7 @@ export default function Signup() {
         console.log("Signup:", values)
         try {
             {/* TODO: Add actuall api */}
-            const response = await axios.post("https://api.bnh.dust.ludd.ltu.se/api/auth/",
+            const response = await axios.post("https://api.bnh.dust.ludd.ltu.se/api/users/",
                 {
                     email: values.email,
                     username: values.username,

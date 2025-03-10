@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "gray"
+    backgroundColor: "lightgray"
   },
   box: {
     flex: 1,
@@ -23,8 +23,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: "20%",
     width: "90%",
-    borderColor: "black",
-    borderWidth: 2,
     marginTop: 2,
     backgroundColor: "#1E90FF",
     marginBottom: 60,
@@ -42,18 +40,23 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "black",
-  }
+    color: "white",
+  },
+  title2Text:{
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "black"
+  },
 });
 
 export default function welcomeScreen() {
-  const klubbNamn = ["Clubb Name"]
+  const klubbNamn = ["John Kågström"]
   return(
   <View
   style={styles.container}
   >
     <View style={styles.box1}>
-      <Text style={styles.titleText}>Välkommen, {klubbNamn}</Text>
+      <Text style={styles.title2Text}>Välkommen, {klubbNamn}</Text>
     </View>
     <Pressable
         style={styles.box}
