@@ -151,7 +151,6 @@ const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) =
                 Authorization: `Token ${tokenString}`
             }
         });
-        
         console.log("Response: ", response);
         const matchId: number = response.data.id;
         router.push(`./match/${matchId}`)

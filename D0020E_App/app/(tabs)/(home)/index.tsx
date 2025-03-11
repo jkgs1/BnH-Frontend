@@ -1,13 +1,8 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
-
-export function Tab() {
-  return (
-    <View style={styles.container}>
-      <Text>Tab [Home|Settings]</Text>
-    </View>
-  );
-}
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Axios from "axios";
+import {useEffect, useState} from "react";
 
 const styles = StyleSheet.create({
   container: {
@@ -48,15 +43,29 @@ const styles = StyleSheet.create({
     color: "black"
   },
 });
+const getUser = async () : Promise<string|null> => {
+  const klubbNamn = await AsyncStorage.getItem("userName");
+  return klubbNamn;
+}
 
 export default function welcomeScreen() {
-  const klubbNamn = ["John Kågström"]
+  const [user, setUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userName = await getUser();
+      setUser(userName);
+    };
+
+    fetchUser();
+  }, []);
+
   return(
   <View
   style={styles.container}
   >
     <View style={styles.box1}>
-      <Text style={styles.title2Text}>Välkommen, {klubbNamn}</Text>
+      <Text style={styles.title2Text}>Välkommen, {user}</Text>
     </View>
     <Pressable
         style={styles.box}

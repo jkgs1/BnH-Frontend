@@ -5,10 +5,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Axios from 'axios';
 import {getTeamsfromApi, Team} from "@/app/getTeamsapi";
 
+const getUser = async () : Promise<string|null> => {
+  const klubbNamn = await AsyncStorage.getItem("userName");
+  return klubbNamn;
+}
+
 const Tab: React.FC = () => {
 
   const router = useRouter();
   const [teams, setTeams] = useState<Team[]>([]);
+  const [user, setUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userName = await getUser();
+      setUser(userName);
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +52,7 @@ const Tab: React.FC = () => {
       <View style={styles.container}>
         <View style={styles.mainBox}>
           <View style={styles.titleBox}>
-            <Text style={styles.titleText}>John Kågström</Text>
+            <Text style={styles.titleText}>Inloggad som {user}</Text>
 
           </View>
           <View style={styles.teamList}>

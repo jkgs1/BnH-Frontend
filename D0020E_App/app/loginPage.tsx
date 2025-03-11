@@ -54,6 +54,7 @@ export default function loginpage() {
       const tokenToString = response.data.token;
       console.log("Login ok:", tokenToString)
       await AsyncStorage.setItem("userToken", tokenToString);
+      await AsyncStorage.setItem("userName", values.email);
       console.log("Token saved")
       router.push("/");
       
