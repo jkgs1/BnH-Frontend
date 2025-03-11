@@ -284,17 +284,63 @@ export default function TeamDetails() {
             Alert.alert("Det blev något fel");
         }
     };
+    const handleDeleteTeamAlert = async () => {
+            return Alert.alert(
+                "Är du säker?",
+                `Är du helt säker på att du vill ta bort ${team.name}?`,
+                [
+                    // The "Yes" button
+                    {
+                        text: "Yes",
+                        onPress: () => {
+                            handleDeleteTeam();
+                        },
+                    },
+                    // The "No" button
+                    // Does nothing but dismiss the dialog when tapped
+                    {
+                        text: "No",
+                    },
+                ]
+            );
+
+    }
+    const handleDeleteTeam = async () => {
+        const tokenString = await AsyncStorage.getItem('userToken');
+        if (!tokenString) {
+            console.error('No token found');
+            alert('No token found');
+            return null;
+        }
+        try{
+            const response = await Axios({
+                url: `/api/clubber/teams/${teamId}/`,
+                method: 'delete',
+                baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+                headers: {
+                    'content-type': 'application/json',
+                    Authorization: `Token ${tokenString}`,
+                },
+                data: {
+                    id: teamId,
+                }
+            });
+        }catch(error){
+            console.log("Failed to delete team");
+        }
+        return null;
+    }
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.teamInfo}>
-                <Text style={styles.teamName}>Team Name: {team.name}</Text>
-                <Text style={styles.teamDescription}>Description: {team.description}</Text>
-                <Text style={styles.teamClub}>Club: {team.club || 'N/A'}</Text>
+                <Text style={styles.teamName}>Lagnamn: {team.name}</Text>
+                <Text style={styles.teamDescription}>Beskrivning: {team.description}</Text>
+                <Text style={styles.teamClub}>Klubb: {team.club || 'N/A'}</Text>
             </View>
 
             <View>
-                <Text style={styles.playersHeader}>Players:</Text>
+                <Text style={styles.playersHeader}>Spelare:</Text>
                 {players.map((player) => (
                     <View style={styles.playerCard} key={player.id}>
                         <Text style={styles.playerName}>{player.givenName} {player.surname}</Text>
@@ -305,7 +351,7 @@ export default function TeamDetails() {
             <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 20}}>
                 <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
                 <View>
-                    <Text style={{width: 50, textAlign: 'center'}}>Team options</Text>
+                    <Text style={{width: 200, textAlign: 'center'}}>Laginställningar</Text>
                 </View>
                 <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
             </View>
@@ -314,44 +360,58 @@ export default function TeamDetails() {
             <View style={styles.teamSettings}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter new team name"
+                    placeholder="Ange nytt lagnamn"
                     value={newTeamName}
                     onChangeText={setNewTeamName}
                     spellCheck={false}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleUpdateTeamName}>
-                    <Text style={styles.buttonText}>Update Team Name</Text>
+                    <Text style={styles.buttonText}>Uppdatera lagnamn</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.teamSettings}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter a description"
+                    placeholder="Ange beskrivning"
                     value={newTeamDescription}
                     onChangeText={setNewTeamDescription}
                     spellCheck={false}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleUpdateTeamDescription}>
-                    <Text style={styles.buttonText}>Update Team Description</Text>
+                    <Text style={styles.buttonText}>Uppdatera lagbeskrivning</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.teamSettings}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Firstname"
+                    placeholder="Förnamn"
                     value={newPlayerFirstName}
                     onChangeText={setNewPlayerFirstName}
                     spellCheck={false}
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="Surname"
+                    placeholder="Efternamn"
                     value={newPlayerSurName}
                     onChangeText={setNewPlayerSurName}
                     spellCheck={false}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleAddPlayer}>
-                    <Text style={styles.buttonText}>Add player</Text>
+                    <Text style={styles.buttonText}>Lägg till ny spelare</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 20}}>
+                <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
+                <View>
+                    <Text style={{width: 200, textAlign: 'center'}}>Advancerade inställningar</Text>
+                </View>
+                <View style={{flex: 1, height: 1, backgroundColor: 'black'}} />
+            </View>
+
+            <View style={styles.teamSettingsForDelete}>
+                <TouchableOpacity style={styles.buttonDelete} onPress={handleDeleteTeamAlert}>
+                    <Text style={styles.buttonText}>Radera Lag.</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -369,6 +429,20 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       alignItems: "flex-start",
       gap: 4
+    },
+    teamSettingsForDelete:{
+      marginTop: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+    },
+    buttonDelete: {
+        backgroundColor: "red",
+        padding: 12,
+        borderRadius: 8,
+        alignItems: "center",
+        width: "30%",
     },
     button: {
         backgroundColor: "#007BFF",

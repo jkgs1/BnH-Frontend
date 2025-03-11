@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
     backgroundColor: "#fff",
-    width: "100%",
+    width: "40%",
   },
   mainBox: {
     flex: 1,
