@@ -14,6 +14,14 @@ export interface Team {
     players: [];
 }
 
+export interface TeamPlayer {
+    id: number;
+    number: number|null;
+    team: number;
+    player: number;
+    shirt: number|null;
+}
+
 {/* function to get all teams connected to token */}
 
 export const getTeamsfromApi = async () => {

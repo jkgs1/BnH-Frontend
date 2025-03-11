@@ -40,21 +40,17 @@ const getPlayersFromApi = async (playerIds: number[]) => {
         router.push('/loginPage');
         return;
     }
-    let playerlist: Player[] = [];
     try {
-        for (const i in playerIds) {
-            const response = await Axios({
-                url: `/api/clubber/players/${playerIds[i]}/`,
-                method: 'get',
-                baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
-                headers: {
-                    'content-type': 'application/json',
-                    Authorization: `Token ${tokenString}`, // Add token to the Authorization header
-                },
-            });
-            playerlist.push(response.data);
-        }
-        return playerlist;
+        let players: Player[] = await Promise.all(playerIds.map(async i => Axios({
+            url: `/api/clubber/players/${i}/`,
+            method: 'get',
+            baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
+            headers: {
+                'content-type': 'application/json',
+                Authorization: `Token ${tokenString}`, // Add token to the Authorization header
+            },
+        }).then((value) => value.data)));
+        return players;
     } catch (error) {
         console.log("Error in getPlayersFromApi", error);
         console.log(error);

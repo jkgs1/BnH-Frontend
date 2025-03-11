@@ -1,15 +1,33 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Modal, FlatList} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Axios from 'axios';
-import { useRouter, Router } from 'expo-router';
+import {useRouter, Router} from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getTeamsfromApi, Team} from "@/app/getTeamsapi";
+import {getTeamsfromApi, Team, TeamPlayer} from "@/app/getTeamsapi";
 
+interface Match {
+    id: number;
+    full_title: number;
+    players: TeamPlayer[];
+    startTime: string;
+    endTime: string;
+    homeTeamId: number;
+    awayTeamId: number;
+}
+
+interface MatchPlayer {
+    id: number;
+    number: number | null;
+    match: number;
+    player: number | null;
+    team: number | null;
+}
 
 const TeamGetter: React.FC = () => {
     const [teams, setTeams] = useState<Team[]>([]);
 
-    {/* Hook call to save team information from @link:getTeamsapi.tsx with setTeams */}
+    {/* Hook call to save team information from @link:getTeamsapi.tsx with setTeams */
+    }
     useEffect(() => {
         const fetchData = async () => {
             const result = await getTeamsfromApi();
@@ -18,19 +36,22 @@ const TeamGetter: React.FC = () => {
             }
         }
         fetchData();
-    },[]);
+    }, []);
 
     const router = useRouter();
 
-    {/* used to set teams ID, needed for posting to database */}
+    {/* used to set teams ID, needed for posting to database */
+    }
     const [homeTeamId, setHomeTeamId] = useState<number | null>(null);
     const [awayTeamId, setAwayTeamId] = useState<number | null>(null);
 
-    {/* used for hiding and showing modal component when returning page */}
+    {/* used for hiding and showing modal component when returning page */
+    }
     const [modalVisibleHome, setModalVisibleHome] = useState(false);
     const [modalVisibleAway, setModalVisibleAway] = useState(false);
 
-    {/* sets the types for values when picking teams */}
+    {/* sets the types for values when picking teams */
+    }
     const handleTeamSelection = (
         teamId: number,
         setTeamId: React.Dispatch<React.SetStateAction<number | null>>,
@@ -76,7 +97,7 @@ const TeamGetter: React.FC = () => {
                         <FlatList
                             data={teams}
                             keyExtractor={(item) => item.id.toString()}
-                            renderItem={({ item }) => (
+                            renderItem={({item}) => (
                                 <TouchableOpacity
                                     style={styles.teamItem}
                                     onPress={() => handleTeamSelection(item.id, setHomeTeamId, setModalVisibleHome)}
@@ -99,7 +120,7 @@ const TeamGetter: React.FC = () => {
                         <FlatList
                             data={teams}
                             keyExtractor={(item) => item.id.toString()}
-                            renderItem={({ item }) => (
+                            renderItem={({item}) => (
                                 <TouchableOpacity
                                     style={styles.teamItem}
                                     onPress={() => handleTeamSelection(item.id, setAwayTeamId, setModalVisibleAway)}
@@ -116,9 +137,10 @@ const TeamGetter: React.FC = () => {
             <TouchableOpacity
                 style={styles.startMatchBox}
                 onPress={() => {
-                    if (homeTeamId && awayTeamId){
+                    if (homeTeamId && awayTeamId) {
                         apiCall(router, homeTeamId, awayTeamId)
-                    }}}
+                    }
+                }}
             >
                 <Text style={styles.titleText}>Generera ny match</Text>
             </TouchableOpacity>
@@ -126,10 +148,11 @@ const TeamGetter: React.FC = () => {
     );
 }
 
-{/* checks that user has a valid token and then posts game to database */}
+{/* checks that user has a valid token and then posts game to database */
+}
 const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) => {
     const tokenString = await AsyncStorage.getItem("userToken");
-    if(!tokenString) {
+    if (!tokenString) {
         console.log("No token found")
         alert("No token found")
         router.push("/loginPage")
@@ -138,7 +161,7 @@ const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) =
     console.log("Token found: ", tokenString);
 
     try {
-        const response = await Axios({
+        const match: Match = await Axios({
             url: "/api/matchup/match/",
             method: "post",
             baseURL: "https://api.bnh.dust.ludd.ltu.se/",
@@ -150,12 +173,48 @@ const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) =
                 "content-type": "application/json",
                 Authorization: `Token ${tokenString}`
             }
-        });
-        console.log("Response: ", response);
-        const matchId: number = response.data.id;
-        router.push(`./match/${matchId}`)
-        await AsyncStorage.setItem("matchid", matchId.toString());
-        console.log("Match: ", matchId);
+        }).then((res) => res.data);
+
+        const homeTeamPlayers: Promise<TeamPlayer[]> = Axios({
+            url: `/api/clubber/teams/${homeTeamId}/players/`,
+            method: "get",
+            baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Token ${tokenString}`
+            }
+        }).then(t => t.data.results);
+        const awayTeamPlayers: Promise<TeamPlayer[]> = Axios({
+            url: `/api/clubber/teams/${awayTeamId}/players/`,
+            method: "get",
+            baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Token ${tokenString}`
+            }
+        }).then(t => t.data.results);
+        const matchPlayers: Promise<MatchPlayer[]> = Promise.all([...await awayTeamPlayers, ...await homeTeamPlayers]
+            .map(async p => Axios({
+                url: `/api/matchup/match/${awayTeamId}/players/`,
+                method: "post",
+                baseURL: "https://api.bnh.dust.ludd.ltu.se/",
+                data: {
+                    number: p.number,
+                    match: match.id,
+                    player: p.player,
+                    team: p.team
+                },
+                headers: {
+                    "content-type": "application/json",
+                    Authorization: `Token ${tokenString}`
+                }
+            }).then(t => t.data)));
+
+
+        router.push(`./match/${match.id}`)
+        await AsyncStorage.setItem("matchid", match.id.toString());
+        console.log("Match: ", match.id);
+        await matchPlayers;
     } catch (error: any) {
         console.log(error)
     }
@@ -166,8 +225,8 @@ const apiCall = async (router: Router, homeTeamId: number, awayTeamId: number) =
 }
 
 export default function frontpage() {
-    return(
-        <TeamGetter />
+    return (
+        <TeamGetter/>
     )
 }
 
@@ -185,7 +244,7 @@ const styles = StyleSheet.create({
         width: "80%",
         height: "auto",
         borderRadius: 10,
-        padding:10,
+        padding: 10,
     },
     titleText: {
         color: "white",
