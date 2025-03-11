@@ -8,10 +8,10 @@ import {
     Modal,
     FlatList, GestureResponderEvent, ScrollView
 } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import React, {useEffect, useState} from 'react';
 import {Router, router, useLocalSearchParams} from 'expo-router';
-import  Axios  from 'axios';
+import Axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {getTeamsfromApi, getTeamFromId, Team} from "@/app/getTeamsapi";
 
@@ -20,12 +20,14 @@ interface Matchprops {
     homeTeamId: number;
     awayTeamId: number;
 }
+
 interface Player {
     bio: string;
     givenName: string;
     id: number;
     surname: string;
 }
+
 interface PickPlayersProps {
     players: Player[];
     teamName: string;
@@ -35,19 +37,21 @@ const apiCall = async () => {
     const tokenString = await AsyncStorage.getItem("userToken");
     const matchIDstring = await AsyncStorage.getItem("matchid");
 
-    const matchID= Number(matchIDstring);
+    const matchID = Number(matchIDstring);
 
-    {/* Checks that the token is valid and that the gameId was correctly fetched from AsyncStorage */}
-    if(!matchID) {
+    {/* Checks that the token is valid and that the gameId was correctly fetched from AsyncStorage */
+    }
+    if (!matchID) {
         console.log("No match found")
         alert("No match found")
         return;
     }
-    if(!tokenString) {
+    if (!tokenString) {
         console.log("No tokenString")
     }
 
-    {/* gets match information based on matchID */}
+    {/* gets match information based on matchID */
+    }
     try {
         const response = await Axios({
             url: `/api/matchup/match/${matchID}/`,
@@ -67,7 +71,8 @@ const apiCall = async () => {
 
 const getTeams = async (homeTeamId: number, awayTeamId: number) => {
     try {
-        {/* Fetch all teams and then find the 2 wanted teams */}
+        {/* Fetch all teams and then find the 2 wanted teams */
+        }
         const allTeams = await getTeamsfromApi();
         if (!allTeams) {
             console.error("No teams found");
@@ -93,18 +98,15 @@ const getPlayersFromApi = async (playerIds: number[]) => {
         return;
     }
     try {
-        const response = await Axios({
-            url: `/api/clubber/players/`,
+        const players: Player[] = await Promise.all(playerIds.map(i => Axios({
+            url: `/api/clubber/players/${i}/`,
             method: 'get',
             baseURL: 'https://api.bnh.dust.ludd.ltu.se/',
             headers: {
                 'content-type': 'application/json',
                 Authorization: `Token ${tokenString}`, // Add token to the Authorization header
             },
-        });
-        const players = response.data.results.filter((player: Player) =>
-            playerIds.includes(player.id)
-        );
+        }).then((p => p.data))));
         return players;
     } catch (error) {
         console.log("Error in getPlayersFromApi", error);
@@ -130,7 +132,7 @@ const getTeamFromApi = async (teamId: number): Promise<Team | null> => {
         });
         return response.data as Team;
     } catch (error) {
-        console.error("Error in getTeamFromApi");
+        console.error("Error in getTeamFromApi", error);
         return null;
     }
 };
@@ -144,7 +146,8 @@ const ThisIsAFunction: React.FC = () => {
     const [awayplayers, setawayPlayers] = useState<Player[]>([]);
     const [teamInfo, setteamInfo] = useState<Team[]>([]);
 
-    {/* gets teams id from apiCall() function above */}
+    {/* gets teams id from apiCall() function above */
+    }
     useEffect(() => {
         const fetchData = async () => {
             const result = await apiCall();
@@ -155,26 +158,28 @@ const ThisIsAFunction: React.FC = () => {
             }
         }
         fetchData();
-    },[]);
+    }, []);
 
-    {/* gets team information with getTeams */}
+    {/* gets team information with getTeams */
+    }
     useEffect(() => {
         const fetchData = async () => {
-                try{
-                    if (homeTeamId!==undefined && awayTeamId!==undefined) {
-                        const result = await getTeams(homeTeamId, awayTeamId);
-                        if (result !== undefined) {
-                            setteamInfo(result)
-                        }
+            try {
+                if (homeTeamId !== undefined && awayTeamId !== undefined) {
+                    const result = await getTeams(homeTeamId, awayTeamId);
+                    if (result !== undefined) {
+                        setteamInfo(result)
                     }
-                } catch(error) {
-                    console.log(error);
                 }
+            } catch (error) {
+                console.log(error);
             }
+        }
         fetchData();
-    },[homeTeamId, awayTeamId]);
+    }, [homeTeamId, awayTeamId]);
 
-    {/* Get players */}
+    {/* Get players */
+    }
 
     useEffect(() => {
         const fetchTeamAndPlayers = async () => {
@@ -182,22 +187,23 @@ const ThisIsAFunction: React.FC = () => {
             const teamawayData = await getTeamFromApi(Number(awayTeamId));
             if (teamhomeData && teamawayData) {
                 // Fetch player details for the player IDs in the team
-                const playerhomeDetails = await getPlayersFromApi(teamhomeData.players);
-                const playerawayDetails = await getPlayersFromApi(teamawayData.players);
+                const playerhomeDetails = await getPlayersFromApi(teamhomeData.players.map(p => p.player));
+                const playerawayDetails = await getPlayersFromApi(teamawayData.players.map(p => p.player));
                 sethomePlayers(playerhomeDetails);
                 setawayPlayers(playerawayDetails);
             }
         };
 
         fetchTeamAndPlayers();
-    }, [homeTeamId]);
+    }, [homeTeamId, awayTeamId]);
 
     const getTeamNameById = (teamInfo: Team[], teamId: number | undefined): string => {
         const team = teamInfo.find((team) => team.id === teamId);
         return team ? team.name : "Team not found";
     };
 
-    {/* This is used so that a user can change the team names */}
+    {/* This is used so that a user can change the team names */
+    }
     const TeamInputFunc = () => {
         const [homeTeam, onChangeHome] = React.useState(getTeamNameById(teamInfo, homeTeamId));
         const [awayTeam, onChangeAway] = React.useState(getTeamNameById(teamInfo, awayTeamId));
@@ -229,11 +235,13 @@ const ThisIsAFunction: React.FC = () => {
         );
     };
 
-    const PickPlayers : React.FC<PickPlayersProps> = ({players, teamName}) => {
-        {/* used for hiding and showing modal component when returning page */}
+    const PickPlayers: React.FC<PickPlayersProps> = ({players, teamName}) => {
+        {/* used for hiding and showing modal component when returning page */
+        }
         const [modalVisibleHome, setModalVisibleHome] = useState(false);
 
-        {/* sets the types for values when picking players */}
+        {/* sets the types for values when picking players */
+        }
         const handlePlayerSelection = (
             playerId: number,
             setModalVisible: React.Dispatch<React.SetStateAction<boolean>>) => {
@@ -241,10 +249,10 @@ const ThisIsAFunction: React.FC = () => {
             console.log("Player selected: ", playerId);
         };
 
-        return(
-            <View style={{width:"100%"}}>
-                <View style={{width:"100%"}}>
-                    <TouchableOpacity style={styles.button} onPress={()=> setModalVisibleHome(true)}>
+        return (
+            <View style={{width: "100%"}}>
+                <View style={{width: "100%"}}>
+                    <TouchableOpacity style={styles.button} onPress={() => setModalVisibleHome(true)}>
                         <View style={styles.teamOptions}>
                             <Text style={styles.buttonText}>Visa Spelare</Text>
                         </View>
@@ -254,19 +262,19 @@ const ThisIsAFunction: React.FC = () => {
                 <Modal
                     visible={modalVisibleHome}
                     animationType="slide"
-                    onRequestClose={()=> setModalVisibleHome(false)}
+                    onRequestClose={() => setModalVisibleHome(false)}
                     presentationStyle="fullScreen"
                 >
-                    <View style={{height:"100%"}}>
+                    <View style={{height: "100%"}}>
                         <View style={styles.modalContainer}>
                             <View style={styles.modalContent}>
                                 <FlatList
                                     data={players}
                                     keyExtractor={(item) => item.id.toString()}
-                                    renderItem={({ item }) => (
+                                    renderItem={({item}) => (
                                         <TouchableOpacity
-                                        style={styles.playerItem}
-                                        onPress={()=>handlePlayerSelection(+item.id, setModalVisibleHome)}
+                                            style={styles.playerItem}
+                                            onPress={() => handlePlayerSelection(+item.id, setModalVisibleHome)}
                                         >
                                             <Text style={styles.playerItemText}>{item.givenName}</Text>
                                         </TouchableOpacity>
@@ -286,35 +294,35 @@ const ThisIsAFunction: React.FC = () => {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={[styles.toptopHeader, { backgroundColor: "lightgray" }]}>
+            <View style={[styles.toptopHeader, {backgroundColor: "lightgray"}]}>
                 <Text style={styles.topHeaderTitle}>Matchid {matchID} Träningsmatch</Text>
             </View>
-            <View style={[styles.topmiddleHeader, { backgroundColor: "lightgray" }]}></View>
-            <View style={[styles.topbottomHeader, { backgroundColor: "lightgray" }]}>
+            <View style={[styles.topmiddleHeader, {backgroundColor: "lightgray"}]}></View>
+            <View style={[styles.topbottomHeader, {backgroundColor: "lightgray"}]}>
                 <Text style={styles.topHeaderTeamText}>Hemmalag</Text>
                 <Text style={styles.topHeaderTeamText}>Bortalag</Text>
             </View>
 
             {/* Manually change the names of the teams */}
             <View style={styles.teamOptions}>
-                <TeamInputFunc />
+                <TeamInputFunc/>
             </View>
 
-            <View style={{ alignItems: "flex-start",flexDirection:"row" }}>
+            <View style={{alignItems: "flex-start", flexDirection: "row"}}>
                 <View style={styles.teamOptionsHome}>
                     <PickPlayers players={homeplayers} teamName={"Hemmalag"}/>
-                    <CustomButton title="Välj ledarstab" />
-                    <CustomButton title="Lagfärg" />
+                    <CustomButton title="Välj ledarstab"/>
+                    <CustomButton title="Lagfärg"/>
                 </View>
                 <View style={styles.teamOptionsAway}>
                     <PickPlayers players={awayplayers} teamName={"Bortalag"}/>
-                    <CustomButton title="Välj ledarstab" />
-                    <CustomButton title="Lagfärg" />
+                    <CustomButton title="Välj ledarstab"/>
+                    <CustomButton title="Lagfärg"/>
                 </View>
             </View>
 
             {/* Match Options */}
-            <View style={{alignContent:"flex-start",flexDirection:"row"}}>
+            <View style={{alignContent: "flex-start", flexDirection: "row"}}>
                 <View style={styles.matchOptions}>
                     <MatchOptionButton title='Matchfunktionärer'/>
 
@@ -332,7 +340,8 @@ interface CustomButtonProps extends TouchableOpacityProps {
     title: string;
     style?: object;
 }
-const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
+
+const CustomButton: React.FC<CustomButtonProps> = ({title, onPress, style}) => {
 
     return (
         <TouchableOpacity style={styles.button} onPress={onPress}>
@@ -342,7 +351,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) =>
         </TouchableOpacity>
     );
 };
-const MatchOptionButton: React.FC<CustomButtonProps> = ({ title, onPress, style }) => {
+const MatchOptionButton: React.FC<CustomButtonProps> = ({title, onPress, style}) => {
     return (
         <TouchableOpacity style={styles.matchButtons} onPress={onPress}>
             <View style={styles.teamOptions}>
@@ -353,9 +362,9 @@ const MatchOptionButton: React.FC<CustomButtonProps> = ({ title, onPress, style 
 };
 
 const MatchStartButton: React.FC<CustomButtonProps> = ({title, onPress, style}) => {
-    return(
-        <TouchableOpacity style={styles.greenButton}onPress={()=>
-         router.push("/Sek")
+    return (
+        <TouchableOpacity style={styles.greenButton} onPress={() =>
+            router.push("/Sek")
         }>
             <Text style={styles.buttonText}>{title}</Text>
         </TouchableOpacity>
@@ -363,7 +372,7 @@ const MatchStartButton: React.FC<CustomButtonProps> = ({title, onPress, style}) 
 };
 
 export default function Tab() {
-    return(
+    return (
         <ThisIsAFunction/>
     )
 }
@@ -387,7 +396,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 20,
         marginBottom: 40,
-        marginTop:40,
+        marginTop: 40,
     },
     playerItem: {
         padding: 15,
@@ -397,14 +406,14 @@ const styles = StyleSheet.create({
     playerItemText: {
         fontSize: 18,
     },
-    bottomContainer:{
-        backgroundColor:"",
-        height:"30%",
-        width:"100%",
-        justifyContent:"center",
-        alignItems:"center",
-        bottom:0,
-        position:"absolute"
+    bottomContainer: {
+        backgroundColor: "",
+        height: "30%",
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        bottom: 0,
+        position: "absolute"
     },
     // Header
     topheader: {
@@ -457,7 +466,7 @@ const styles = StyleSheet.create({
         height: "auto",
         alignItems: "flex-start",
         flexDirection: "column",
-        
+
         top: 20,
         left: 10,
         gap: 10,
@@ -467,38 +476,38 @@ const styles = StyleSheet.create({
         height: "auto",
         alignItems: "flex-end",
         flexDirection: "column",
-        
+
         top: 20,
         right: 10,
         gap: 10,
     },
     teamInput: {
-        width:"45%",
+        width: "45%",
         height: "auto",
         margin: 10,
         borderWidth: 1,
         padding: 10,
-        
+
     },
     // Match Options
-    matchOptions:{
+    matchOptions: {
         width: "100%",
         height: "auto",
         alignItems: "center",
         flexDirection: "column",
-        backgroundColor:"",
-        top:50,
-        gap:10,
+        backgroundColor: "",
+        top: 50,
+        gap: 10,
     },
     // Buttons
-    matchButtons:{
+    matchButtons: {
         height: 60,
         width: "90%",
         borderWidth: 1,
         padding: 10,
         alignItems: "center",
         justifyContent: "center",
-        borderRadius:8,
+        borderRadius: 8,
     },
     button: {
         height: 60,
@@ -507,7 +516,7 @@ const styles = StyleSheet.create({
         padding: 10,
         alignItems: "center",
         justifyContent: "center",
-        borderRadius:8,
+        borderRadius: 8,
     },
     buttonText: {
         fontSize: 16,
@@ -523,5 +532,5 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 8,
-      },
+    },
 });

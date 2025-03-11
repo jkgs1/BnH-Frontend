@@ -11,7 +11,7 @@ export interface Team {
     logo: string | null;
     description: string;
     club: string | null;
-    players: [];
+    players: TeamPlayer[];
 }
 
 export interface TeamPlayer {
