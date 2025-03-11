@@ -307,6 +307,8 @@ export default function TeamDetails() {
     }
     const handleDeleteTeam = async () => {
         const tokenString = await AsyncStorage.getItem('userToken');
+        const [reloadKey, setReloadKey] = useState(0);
+
         if (!tokenString) {
             console.error('No token found');
             alert('No token found');
@@ -325,6 +327,9 @@ export default function TeamDetails() {
                     id: teamId,
                 }
             });
+            {/*Force reload/re-render*/}
+            setReloadKey((prevKey) => prevKey + 1);
+            router.push("../")
         }catch(error){
             console.log("Failed to delete team");
         }
@@ -449,7 +454,9 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 8,
         alignItems: "center",
+        justifyContent: "center",
         width: "30%",
+        height:40,
     },
     buttonText: {
         color: "white",
@@ -464,7 +471,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 16,
         backgroundColor: "#fff",
-        width: "100%",
+        width: "35%",
     },
     teamInfo: {
         marginBottom: 20,
