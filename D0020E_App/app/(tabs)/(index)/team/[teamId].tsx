@@ -1,9 +1,10 @@
 // app/team/[teamId].js
-import {router, useLocalSearchParams, useRouter} from 'expo-router';
-import {View, Text, ScrollView, StyleSheet, Alert, TextInput, TouchableOpacity} from 'react-native';
+import {router, useLocalSearchParams} from 'expo-router';
+import {Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import React, {useEffect, useState} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Axios from "axios";
+import {Player} from "@/app/getTeamsapi";
 
 interface Team {
     id: number;
@@ -20,16 +21,6 @@ interface TeamPlayer {
     team: number,
     player: number,
     shirt: number|null,
-}
-
-interface Player {
-    id: number;
-    givenName: string;
-    surname: string;
-    bio: string;
-    portrait: string | null;
-    anon: boolean;
-    user: null | any;
 }
 
 const getPlayersFromApi = async (playerIds: number[]) => {
