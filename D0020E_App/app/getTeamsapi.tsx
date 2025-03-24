@@ -1,9 +1,19 @@
-{/* Document for occurring api calls */}
+{/* Document for occurring api calls */
+}
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Axios from "axios";
-import {useEffect} from "react";
 import {router} from "expo-router";
+
+export interface Player {
+    id: number;
+    givenName: string;
+    surname: string;
+    bio: string;
+    portrait: string | null;
+    anon: boolean;
+    user: null | any;
+}
 
 export interface Team {
     id: number;

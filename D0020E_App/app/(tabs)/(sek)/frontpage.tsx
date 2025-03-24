@@ -5,22 +5,22 @@ import {useRouter, Router} from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getTeamsfromApi, Team, TeamPlayer} from "@/app/getTeamsapi";
 
-interface Match {
+export interface Match {
     id: number;
     full_title: number;
-    players: TeamPlayer[];
+    players: MatchPlayer[];
     startTime: string;
     endTime: string;
     homeTeamId: number;
     awayTeamId: number;
 }
 
-interface MatchPlayer {
+export interface MatchPlayer {
     id: number;
-    number: number | null;
+    number: number;
     match: number;
-    player: number | null;
-    team: number | null;
+    player: number;
+    team: number;
 }
 
 const TeamGetter: React.FC = () => {

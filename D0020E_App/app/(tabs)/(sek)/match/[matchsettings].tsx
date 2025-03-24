@@ -189,8 +189,8 @@ const ThisIsAFunction: React.FC = () => {
                 // Fetch player details for the player IDs in the team
                 const playerhomeDetails = await getPlayersFromApi(teamhomeData.players.map(p => p.player));
                 const playerawayDetails = await getPlayersFromApi(teamawayData.players.map(p => p.player));
-                sethomePlayers(playerhomeDetails);
-                setawayPlayers(playerawayDetails);
+                sethomePlayers(playerhomeDetails as Player[]);
+                setawayPlayers(playerawayDetails as Player[]);
             }
         };
 
